@@ -21,21 +21,25 @@ export default function HomePage() {
     <div className="animate-fade-in">
       {/* Hero */}
       <section className="relative bg-navy text-white overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(201,168,76,0.15),_transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(245,185,66,0.18),_transparent_60%)]" />
         <div className="container mx-auto max-w-7xl px-4 py-24 md:py-36 relative">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 text-gold text-sm font-medium mb-6 border border-gold/30 rounded-full px-4 py-1.5">
               <Mic className="h-3.5 w-3.5" />
               전문 진행자 매칭 플랫폼
             </div>
+
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-              행사를 빛낼<br />
+              행사를 빛낼
+              <br />
               <span className="text-gold">진행자</span>를 찾아드립니다
             </h1>
+
             <p className="text-lg text-white/70 mb-10 leading-relaxed">
               기업행사, 웨딩, 라이브커머스, 컨퍼런스에 필요한 전문 MC·아나운서·쇼호스트를
               빠르고 정확하게 연결해 드립니다.
             </p>
+
             <div className="flex flex-wrap gap-3">
               <Link href="/signup">
                 <Button size="lg" className="bg-gold text-navy font-semibold hover:bg-gold-dark">
@@ -43,8 +47,9 @@ export default function HomePage() {
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </Link>
+
               <Link href="/freelancers">
-                <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10">
+                <Button size="lg" variant="action">
                   진행자 둘러보기
                 </Button>
               </Link>
@@ -54,7 +59,7 @@ export default function HomePage() {
       </section>
 
       {/* Categories */}
-      <section className="border-b bg-muted/30">
+      <section className="border-b bg-ivory">
         <div className="container mx-auto max-w-7xl px-4 py-5">
           <div className="flex flex-wrap gap-2 items-center">
             <span className="text-xs font-medium text-muted-foreground mr-2">분야별</span>
@@ -77,6 +82,7 @@ export default function HomePage() {
           <h2 className="text-3xl font-bold mb-3">왜 프리마이크인가요?</h2>
           <p className="text-muted-foreground">전문성과 신뢰를 기반으로 최적의 진행자를 연결합니다</p>
         </div>
+
         <div className="grid md:grid-cols-3 gap-8">
           {features.map(({ icon: Icon, title, desc }) => (
             <div key={title} className="p-8 rounded-xl border bg-card hover:shadow-md transition-shadow">
@@ -91,9 +97,10 @@ export default function HomePage() {
       </section>
 
       {/* How it works */}
-      <section className="bg-muted/30 py-20">
+      <section className="bg-ivory-muted py-20">
         <div className="container mx-auto max-w-7xl px-4">
           <h2 className="text-3xl font-bold text-center mb-14">이용 방법</h2>
+
           <div className="grid md:grid-cols-4 gap-6">
             {[
               { step: "01", title: "요청서 작성", desc: "행사 정보와 원하는 진행자 조건을 입력하세요" },
@@ -117,12 +124,14 @@ export default function HomePage() {
       <section className="container mx-auto max-w-7xl px-4 py-20 text-center">
         <h2 className="text-3xl font-bold mb-4">지금 바로 시작하세요</h2>
         <p className="text-muted-foreground mb-8">전문 진행자와의 연결, 프리마이크가 도와드립니다</p>
+
         <div className="flex justify-center gap-3 flex-wrap">
           <Link href="/signup">
             <Button size="lg" className="bg-navy text-white hover:bg-navy-light">
               고객으로 시작하기
             </Button>
           </Link>
+
           <Link href="/signup">
             <Button size="lg" variant="outline">
               진행자로 등록하기
@@ -132,7 +141,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-muted/30 py-8">
+      <footer className="border-t bg-ivory py-8">
         <div className="container mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Mic className="h-4 w-4" />

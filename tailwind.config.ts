@@ -10,8 +10,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Pretendard", "system-ui", "sans-serif"],
-        display: ["Pretendard", "sans-serif"],
+        sans: ["Song Myung", "serif"],
+        display: ["Song Myung", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -19,35 +19,57 @@ const config: Config = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
+
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
+
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
+
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
         },
+
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
+
         gold: {
-          DEFAULT: "#c9a84c",
-          light: "#e8cc7a",
-          dark: "#a07a2c",
+          DEFAULT: "#F5B942",
+          light: "#FFD66D",
+          dark: "#D99A1E",
         },
+
         navy: {
-          DEFAULT: "#0f172a",
-          light: "#1e293b",
-          muted: "#334155",
+          DEFAULT: "#13233A",
+          light: "#1E3558",
+          muted: "#344966",
+        },
+
+        ivory: {
+          DEFAULT: "#FFF8EA",
+          muted: "#FFF1D6",
+        },
+
+        slate: {
+          DEFAULT: "#667085",
+        },
+
+        action: {
+          DEFAULT: "#2F80ED",
+          dark: "#1F6FD6",
+          light: "#EAF3FF",
         },
       },
       borderRadius: {
