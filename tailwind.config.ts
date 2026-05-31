@@ -45,37 +45,55 @@ const config: Config = {
           foreground: "hsl(var(--accent-foreground))",
         },
 
-        gold: {
-          DEFAULT: "#F5B942",
-          light: "#FFD66D",
-          dark: "#D99A1E",
+        clear: {
+          DEFAULT: "#FAFAFA",
         },
 
-        navy: {
-          DEFAULT: "#13233A",
-          light: "#1E3558",
-          muted: "#344966",
+        prism: {
+          DEFAULT: "#4A90E2",
+          light: "#EAF3FF",
+          dark: "#2F73C8",
         },
 
-        ivory: {
-          DEFAULT: "#FFF8EA",
-          muted: "#FFF1D6",
+        coral: {
+          DEFAULT: "#FF8C73",
+          light: "#FFF0EC",
+          dark: "#F06F56",
+        },
+
+        indigo: {
+          DEFAULT: "#2C3E50",
+          light: "#3E5871",
+          dark: "#1F2D3A",
+        },
+
+        line: {
+          DEFAULT: "#E0E0E0",
+        },
+
+        mist: {
+          DEFAULT: "#F3F6FA",
         },
 
         slate: {
           DEFAULT: "#667085",
         },
 
-        action: {
-          DEFAULT: "#2F80ED",
-          dark: "#1F6FD6",
-          light: "#EAF3FF",
+        disabled: {
+          DEFAULT: "#E0E0E0",
+        },
+
+        disabledText: {
+          DEFAULT: "#98A2B3",
         },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      backgroundImage: {
+        "prism-gradient": "linear-gradient(135deg, #4A90E2, #FF8C73)",
       },
       keyframes: {
         "accordion-down": {

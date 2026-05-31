@@ -6,39 +6,43 @@
 
 @layer base {
   :root {
-    --background: 40 100% 96%;
-    --foreground: 215 51% 15%;
+    --background: 0 0% 98%;
+    --foreground: 210 29% 24%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 51% 15%;
+    --card-foreground: 210 29% 24%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 51% 15%;
+    --popover-foreground: 210 29% 24%;
 
-    --primary: 215 51% 15%;
-    --primary-foreground: 40 100% 96%;
+    --primary: 10 100% 73%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 40 100% 92%;
-    --secondary-foreground: 215 51% 15%;
+    --secondary: 210 72% 59%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 40 90% 93%;
-    --muted-foreground: 221 13% 46%;
+    --muted: 214 38% 97%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 40 90% 61%;
-    --accent-foreground: 215 51% 15%;
+    --accent: 210 72% 59%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 40 45% 85%;
-    --input: 40 45% 85%;
-    --ring: 214 84% 56%;
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 210 72% 59%;
 
-    --radius: 0.5rem;
+    --radius: 0.65rem;
   }
 
   * {
     @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
@@ -59,7 +63,20 @@
   h4,
   h5,
   h6 {
-    @apply font-semibold tracking-tight;
+    @apply tracking-tight;
+  }
+}
+
+@layer components {
+  .prism-gradient {
+    background: linear-gradient(135deg, #4a90e2, #ff8c73);
+  }
+
+  .prism-gradient-text {
+    background: linear-gradient(135deg, #4a90e2, #ff8c73);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 }
 
@@ -69,7 +86,7 @@
   }
 
   .skeleton {
-    @apply relative overflow-hidden bg-muted rounded;
+    @apply relative overflow-hidden rounded bg-muted;
   }
 
   .skeleton::after {
@@ -77,7 +94,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(255, 255, 255, 0.4),
+      rgba(255, 255, 255, 0.55),
       transparent
     );
     content: "";
