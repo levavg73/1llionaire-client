@@ -65,7 +65,7 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
           <Link href={`/customer/requests/${id}/recommendations`}>
             <Button className="w-full gap-2 bg-navy text-white hover:bg-navy-light">
               <Users className="h-4 w-4" />
-              추천 후보 확인하기
+              AI 추천 후보 확인하기
             </Button>
           </Link>
         )}
@@ -73,7 +73,7 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
         {req.status === "submitted" || req.status === "reviewing" ? (
           <Card className="border-amber-200 bg-amber-50">
             <CardContent className="pt-6 text-sm text-amber-800">
-              <p className="font-medium">관리자가 후보를 선정 중입니다</p>
+              <p className="font-medium">AI가 후보를 매칭 중입니다</p>
               <p className="mt-1 text-amber-700">추천 후보가 준비되면 문자와 이메일로 즉시 알림을 발송합니다. (예상 소요시간: 3시간)</p>
             </CardContent>
           </Card>

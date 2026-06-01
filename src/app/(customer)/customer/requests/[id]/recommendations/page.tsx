@@ -46,14 +46,14 @@ export default function RecommendationsPage({ params }: { params: { id: string }
         </Link>
         <div>
           <h1 className="text-2xl font-bold">추천 후보</h1>
-          <p className="text-muted-foreground text-sm">관리자가 선별한 맞춤 진행자입니다</p>
+          <p className="text-muted-foreground text-sm">AI 데이터 매칭으로 선별한 맞춤 진행자입니다</p>
         </div>
       </div>
 
       {isLoading && <LoadingState />}
       {isError && <ErrorState onRetry={() => refetch()} />}
       {!isLoading && !isError && recommendations.length === 0 && (
-        <EmptyState title="추천 후보가 없습니다" description="관리자가 후보를 선정 중입니다. 곧 추천 결과를 알려드립니다." />
+        <EmptyState title="추천 후보가 없습니다" description="AI가 요청 조건과 등록 데이터를 비교하고 있습니다. 조건에 맞는 후보가 생기면 바로 알려드립니다." />
       )}
 
       {bookingMutation.isError && (
@@ -111,7 +111,7 @@ export default function RecommendationsPage({ params }: { params: { id: string }
                 </div>
                 {rec.recommendation_reason && (
                   <div className="px-5 pb-4 border-t bg-muted/30 pt-3">
-                    <p className="text-xs font-medium text-muted-foreground mb-1">추천 사유</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">AI 추천 사유</p>
                     <p className="text-sm">{rec.recommendation_reason}</p>
                   </div>
                 )}

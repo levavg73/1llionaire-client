@@ -69,7 +69,7 @@ export default function NewRequestPage() {
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.customerRequests });
       const id = res.data.data?.id;
-      router.push(id ? `/customer/requests/${id}` : "/customer/requests");
+      router.push(id ? `/customer/requests/${id}/recommendations` : "/customer/requests");
     },
   });
 
@@ -81,7 +81,7 @@ export default function NewRequestPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold">요청서 작성</h1>
-          <p className="text-muted-foreground text-sm">행사 정보를 입력하면 맞춤 진행자를 추천해 드립니다</p>
+          <p className="text-muted-foreground text-sm">행사 정보를 입력하면 AI 데이터 매칭으로 맞춤 진행자를 바로 추천해 드립니다</p>
         </div>
       </div>
 
@@ -165,7 +165,7 @@ export default function NewRequestPage() {
         </Card>
 
         <Button type="submit" className="w-full bg-navy text-white hover:bg-navy-light" size="lg" disabled={isSubmitting || mutation.isPending}>
-          {mutation.isPending ? "제출 중..." : "요청서 제출"}
+          {mutation.isPending ? "AI 매칭 중..." : "요청서 제출하고 AI 추천받기"}
         </Button>
       </form>
     </div>
