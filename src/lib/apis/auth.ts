@@ -29,6 +29,6 @@ export const authApi = {
   changePassword: (data: { current_password: string; new_password: string }) =>
     http.patch<BackendResponse<null>>("/api/users/me/password", data),
 
-  deleteAccount: (_data: { password: string }) =>
-    http.delete<BackendResponse<null>>("/api/users/me"),
+  deleteAccount: (data: { password: string }) =>
+    http.delete<BackendResponse<null>>("/api/users/me", data),
 };
