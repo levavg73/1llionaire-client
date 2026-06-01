@@ -25,4 +25,12 @@ export const authApi = {
 
   updateMe: (data: { name?: string; phone?: string }) =>
     http.patch<BackendResponse<AuthUser>>("/api/users/me", data),
+
+  // 비밀번호 변경
+  changePassword: (data: { current_password: string; new_password: string }) =>
+    http.patch<BackendResponse<null>>("/api/users/me/password", data),
+
+  // 회원 탈퇴 (비밀번호 확인 후 soft delete)
+  deleteAccount: (data: { password: string }) =>
+    http.delete<BackendResponse<null>>("/api/users/me"),
 };

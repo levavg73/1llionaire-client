@@ -205,8 +205,9 @@ const http = {
   patch: <T = unknown>(url: string, data?: unknown) =>
     request<T>({ method: "PATCH", url, data }),
 
-  delete: <T = unknown>(url: string) =>
-    request<T>({ method: "DELETE", url }),
+  // body가 있는 DELETE도 지원 (회원 탈퇴 등)
+  delete: <T = unknown>(url: string, data?: unknown) =>
+    request<T>({ method: "DELETE", url, data }),
 };
 
 export default http;

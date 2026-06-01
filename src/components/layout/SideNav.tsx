@@ -7,6 +7,7 @@ import {
   FileText, Star, LayoutDashboard,
   Users, ClipboardList, Calendar, CreditCard,
   Wallet, MessageSquare, Briefcase, BarChart3,
+  Settings,
 } from "lucide-react";
 
 interface NavItem { href: string; label: string; icon: React.ReactNode }
@@ -46,6 +47,7 @@ export function CustomerNav() {
     <SideNav items={[
       { href: "/customer/requests", label: "내 요청서", icon: <FileText className="h-4 w-4" /> },
       { href: "/customer/bookings", label: "내 예약", icon: <Calendar className="h-4 w-4" /> },
+      { href: "/settings", label: "계정 설정", icon: <Settings className="h-4 w-4" /> },
     ]} />
   );
 }
@@ -58,6 +60,7 @@ export function FreelancerNav() {
       { href: "/freelancer/requests", label: "전달받은 요청", icon: <ClipboardList className="h-4 w-4" /> },
       { href: "/freelancer/bookings", label: "예약 관리", icon: <Calendar className="h-4 w-4" /> },
       { href: "/freelancer/settlements", label: "정산 내역", icon: <Wallet className="h-4 w-4" /> },
+      { href: "/settings", label: "계정 설정", icon: <Settings className="h-4 w-4" /> },
     ]} />
   );
 }
