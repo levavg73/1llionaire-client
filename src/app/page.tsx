@@ -233,12 +233,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-line bg-card py-8">
-        <div className="container mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-[14px] text-slate sm:flex-row">
-          <div className="flex items-center gap-2">
-            <Mic className="h-4 w-4 text-lavender" />
-            <span className="font-bold text-text">프리마이크</span>
-          </div>
-
+        <div className="container mx-auto flex max-w-7xl items-center justify-center px-4 text-[14px] text-slate">
           <p>© 2026 FreeMic. All rights reserved.</p>
         </div>
       </footer>
