@@ -23,11 +23,14 @@ export const freelancerApi = {
     const formData = new FormData();
     formData.append("image", file);
 
-    return http.post<BackendResponse<{ url: string }>>(
+    return http.post<BackendResponse<{ url: string | null; path: string }>>(
       "/api/freelancer/profile-image",
       formData
     );
   },
+
+  deleteProfileImage: () =>
+    http.delete<BackendResponse<null>>("/api/freelancer/profile-image"),
 
   createPortfolio: (data: unknown) =>
     http.post<BackendResponse<Portfolio>>("/api/freelancer/portfolio", data),

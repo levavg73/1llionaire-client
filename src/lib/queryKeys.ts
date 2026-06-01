@@ -14,6 +14,11 @@ export const queryKeys = {
   customerBookings: ["customer", "bookings"] as const,
   customerBookingsPage: (page: number) => ["customer", "bookings", { page }] as const,
   myReviews: ["customer", "reviews", "me"] as const,
+  notifications: ["notifications"] as const,
+  notificationUnreadCount: ["notifications", "unread-count"] as const,
+  chatRooms: ["chat", "rooms"] as const,
+  chatRoomsPage: (page: number) => ["chat", "rooms", { page }] as const,
+  chatRoomMessages: (roomId: string) => ["chat", "rooms", roomId, "messages"] as const,
 
   freelancerProfile: ["freelancer", "profile"] as const,
   freelancerPortfolio: ["freelancer", "portfolio"] as const,

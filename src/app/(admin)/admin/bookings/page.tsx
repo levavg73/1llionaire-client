@@ -12,10 +12,17 @@ import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { Booking, BookingStatus } from "@/types";
 
-const BOOKING_STATUSES: BookingStatus[] = ["pending", "confirmed", "completed", "canceled", "disputed"];
+const BOOKING_STATUSES: BookingStatus[] = ["pending", "negotiating", "accepted", "rejected", "payment_pending", "confirmed", "completed", "canceled", "disputed"];
 const BOOKING_STATUS_LABEL: Record<BookingStatus, string> = {
-  pending: "예약 대기", confirmed: "예약 확정", completed: "행사 완료",
-  canceled: "취소", disputed: "분쟁",
+  pending: "수락 대기",
+  negotiating: "가격 협상 중",
+  accepted: "수락 완료",
+  rejected: "거절",
+  payment_pending: "결제 대기",
+  confirmed: "예약 확정",
+  completed: "행사 완료",
+  canceled: "취소",
+  disputed: "분쟁",
 };
 
 export default function AdminBookingsPage() {

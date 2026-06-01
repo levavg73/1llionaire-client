@@ -3,6 +3,10 @@ import type {
   ApiResponse,
   Booking,
   BookingStatus,
+  BookingOffer,
+  ChatMessage,
+  ChatRoom,
+  ChatRoomDetail,
   EventRequest,
   FreelancerProfile,
   PaymentStatus,
@@ -10,6 +14,7 @@ import type {
   Quote,
   Recommendation,
   RequestStatus,
+  NotificationItem,
   Review,
   ReviewStatus,
   SettlementStatus,
@@ -76,7 +81,7 @@ export type AdminRequestDetail = Omit<EventRequest, "recommendations"> & {
 
 export type AdminBookingRow = Booking & {
   customer?: Pick<User, "id" | "name" | "email">;
-  freelancer?: Pick<FreelancerProfile, "id" | "display_name" | "profile_image_url">;
+  freelancer?: Pick<FreelancerProfile, "id" | "display_name" | "profile_image_url" | "profile_image_path">;
 };
 
 export interface AdminPaymentRow {
@@ -204,6 +209,10 @@ export type StatusUpdatePayload = Partial<{
 export type {
   Booking,
   BookingStatus,
+  BookingOffer,
+  ChatMessage,
+  ChatRoom,
+  ChatRoomDetail,
   EventRequest,
   FreelancerProfile,
   PaymentStatus,
@@ -211,6 +220,7 @@ export type {
   Quote,
   Recommendation,
   RequestStatus,
+  NotificationItem,
   Review,
   ReviewStatus,
   SettlementStatus,

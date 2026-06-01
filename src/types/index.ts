@@ -66,7 +66,8 @@ export interface CustomerProfile {
 export interface FreelancerProfileSummary {
   id: string;
   display_name?: string;
-  profile_image_url?: string;
+  profile_image_url?: string | null;
+  profile_image_path?: string | null;
   headline?: string;
   status: FreelancerStatus;
   avg_rating?: number;
@@ -87,7 +88,8 @@ export interface FreelancerProfile {
   id: string;
   user_id: string;
   display_name?: string;
-  profile_image_url?: string;
+  profile_image_url?: string | null;
+  profile_image_path?: string | null;
   headline?: string;
   bio?: string;
   region?: string;
@@ -206,7 +208,16 @@ export interface Quote {
 
 // ─── 예약 ────────────────────────────────────────────────────
 
-export type BookingStatus = "pending" | "confirmed" | "completed" | "canceled" | "disputed";
+export type BookingStatus =
+  | "pending"
+  | "negotiating"
+  | "accepted"
+  | "rejected"
+  | "payment_pending"
+  | "confirmed"
+  | "completed"
+  | "canceled"
+  | "disputed";
 export type PaymentStatus = "unpaid" | "deposit_paid" | "fully_paid" | "refunded" | "failed";
 export type SettlementStatus = "pending" | "scheduled" | "completed" | "held" | "failed";
 
@@ -228,7 +239,9 @@ export interface Booking {
   cancel_reason?: string;
   created_at: string;
   customer?: Pick<User, "id" | "name">;
-  freelancer?: Pick<FreelancerProfile, "id" | "display_name" | "profile_image_url">;
+  freelancer?: Pick<FreelancerProfile, "id" | "display_name" | "profile_image_url" | "profile_image_path">;
+  chat_room?: ChatRoom | null;
+  offers?: BookingOffer[];
   reviews?: Review[];
 }
 
@@ -257,6 +270,66 @@ export interface Review {
   booking?: Pick<Booking, "event_title" | "event_date">;
 }
 
+
+// ─── 알림/상담/가격 제안 ─────────────────────────────────────
+
+export interface NotificationItem {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  message: string;
+  link_url?: string | null;
+  is_read: boolean;
+  created_at: string;
+  unread_count?: number;
+}
+
+export interface ChatRoom {
+  id: string;
+  booking_id: string;
+  customer_id: string;
+  freelancer_id: string;
+  last_message_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  booking?: Pick<Booking, "id" | "event_title" | "event_date" | "booking_status" | "payment_status" | "final_price">;
+  customer?: Pick<User, "id" | "name">;
+  freelancer?: Pick<FreelancerProfile, "id" | "display_name">;
+  messages?: ChatMessage[];
+}
+
+export interface BookingOffer {
+  id: string;
+  booking_id: string;
+  sender_id: string;
+  receiver_id: string;
+  amount: number;
+  message?: string | null;
+  status: "pending" | "accepted" | "rejected" | "cancelled";
+  responded_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  room_id: string;
+  sender_id?: string | null;
+  message: string;
+  message_type: "text" | "system" | "offer";
+  offer_id?: string | null;
+  is_read: boolean;
+  created_at: string;
+  sender?: Pick<User, "id" | "name" | "user_type"> | null;
+  offer?: BookingOffer | null;
+}
+
+export interface ChatRoomDetail {
+  room: ChatRoom;
+  messages: ChatMessage[];
+}
+
 // ─── 상태 레이블 ─────────────────────────────────────────────
 
 export const FREELANCER_STATUS_LABEL: Record<FreelancerStatus, string> = {
@@ -282,7 +355,11 @@ export const REQUEST_STATUS_LABEL: Record<RequestStatus, string> = {
 };
 
 export const BOOKING_STATUS_LABEL: Record<BookingStatus, string> = {
-  pending: "예약 대기",
+  pending: "수락 대기",
+  negotiating: "가격 협상 중",
+  accepted: "수락 완료",
+  rejected: "거절",
+  payment_pending: "결제 대기",
   confirmed: "예약 확정",
   completed: "행사 완료",
   canceled: "취소",

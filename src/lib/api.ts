@@ -9,3 +9,5 @@ export { freelancerApi } from "./apis/freelancer";
 export { bookingApi } from "./apis/bookings";
 export { adminApi } from "./apis/admin";
 export { paymentApi } from "./apis/payments";
+export { notificationApi } from "./apis/notifications";
+export { chatApi } from "./apis/chat";

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { BookingStatusBadge, PaymentStatusBadge } from "@/components/common/StatusBadge";
 import { LoadingState, EmptyState, ErrorState } from "@/components/common/States";
 import { Pagination } from "@/components/common/Pagination";
-import { ChevronRight } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { Booking } from "@/types";
 
@@ -56,16 +56,23 @@ export default function CustomerBookingsPage() {
                   <p className="text-sm font-medium mt-1">{formatPrice(booking.final_price)}</p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                  {booking.booking_status === "confirmed" &&
-                  booking.payment_status !== "fully_paid" && (
-                    <Link href={`/customer/bookings/${booking.id}/payment`}>
-                      <Button size="sm" className="text-xs bg-navy text-white hover:bg-navy-light">
-                        결제하기
+                  {booking.chat_room && (
+                    <Link href={`/customer/chats/${booking.chat_room.id}`}>
+                      <Button size="sm" variant="outline" className="gap-1 text-xs">
+                        <MessageSquare className="h-3.5 w-3.5" />
+                        상담하기
                       </Button>
                     </Link>
                   )}
-                {booking.booking_status === "completed" && (
+                  {["payment_pending", "confirmed"].includes(booking.booking_status) &&
+                    booking.payment_status !== "fully_paid" && (
+                      <Link href={`/customer/bookings/${booking.id}/payment`}>
+                        <Button size="sm" className="text-xs bg-navy text-white hover:bg-navy-light">
+                          결제하기
+                        </Button>
+                      </Link>
+                    )}
+                  {booking.booking_status === "completed" && (
                     <Link href={`/reviews/new?bookingId=${booking.id}`}>
                       <Button size="sm" variant="outline" className="text-xs">후기 작성</Button>
                     </Link>

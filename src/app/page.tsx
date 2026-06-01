@@ -34,14 +34,6 @@ const features = [
   },
 ];
 
-const categories = [
-  "기업행사 MC",
-  "웨딩 사회자",
-  "쇼호스트",
-  "컨퍼런스 MC",
-  "라이브커머스",
-  "아나운서",
-];
 
 export default function HomePage() {
   return (
@@ -104,26 +96,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="border-y border-line bg-surface">
-        <div className="container mx-auto max-w-7xl px-4 py-5">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-2 text-[14px] font-bold text-slate">
-              분야별
-            </span>
-
-            {categories.map((cat) => (
-              <Link
-                key={cat}
-                href={`/freelancers?category=${encodeURIComponent(cat)}`}
-                className="rounded-full border border-line bg-card px-3 py-1.5 text-[14px] font-bold text-text transition-colors hover:border-lavender hover:text-lavender"
-              >
-                {cat}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Features */}
       <section className="container mx-auto max-w-7xl px-4 py-20">

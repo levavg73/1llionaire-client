@@ -28,13 +28,15 @@ export default function RecommendationsPage({ params }: { params: { id: string }
   const bookingMutation = useMutation({
     mutationFn: (freelancerId: string) =>
       bookingApi.createBooking({ request_id: id, freelancer_id: freelancerId }),
-    onSuccess: () => {
+    onSuccess: (res) => {
+      const booking = res.data.data;
       queryClient.invalidateQueries({ queryKey: queryKeys.customerBookings });
       queryClient.invalidateQueries({ queryKey: queryKeys.customerRequest(id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.recommendations(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.chatRooms });
       queryClient.invalidateQueries({ queryKey: queryKeys.adminBookings });
       queryClient.invalidateQueries({ queryKey: queryKeys.adminDashboard });
-      router.push("/customer/bookings");
+      router.push(booking.chat_room ? `/customer/chats/${booking.chat_room.id}` : "/customer/bookings");
     },
   });
 
@@ -58,7 +60,7 @@ export default function RecommendationsPage({ params }: { params: { id: string }
 
       {bookingMutation.isError && (
         <p role="alert" className="text-sm text-destructive bg-destructive/5 border border-destructive/20 rounded-md px-3 py-2 mb-4">
-          예약 생성에 실패했습니다. 이미 예약되었거나 예약 가능한 후보가 아닐 수 있습니다.
+          예약 요청에 실패했습니다. 이미 진행 중인 요청이 있거나 예약 가능한 후보가 아닐 수 있습니다.
         </p>
       )}
 
@@ -128,7 +130,7 @@ export default function RecommendationsPage({ params }: { params: { id: string }
                     disabled={bookingMutation.isPending}
                     onClick={() => bookingMutation.mutate(f.id)}
                   >
-                    {bookingMutation.isPending ? "예약 생성 중..." : "예약 생성"}
+                    {bookingMutation.isPending ? "요청 중..." : "예약 요청"}
                   </Button>
                 </div>
               </CardContent>

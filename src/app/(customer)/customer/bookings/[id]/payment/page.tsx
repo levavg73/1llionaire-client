@@ -161,7 +161,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
   if (!booking) return null;
 
   // 결제 불가 상태 체크
-  const canPay = booking.booking_status === "confirmed" &&
+  const canPay = ["payment_pending", "confirmed"].includes(booking.booking_status) &&
     booking.payment_status !== "fully_paid";
 
   return (
@@ -212,8 +212,8 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
       {!canPay && (
         <Card className="mb-4 border-amber-200 bg-amber-50">
           <CardContent className="pt-5 pb-5 text-sm text-amber-800">
-            {booking.booking_status !== "confirmed"
-              ? "예약 확정 상태에서만 결제할 수 있습니다."
+            {!["payment_pending", "confirmed"].includes(booking.booking_status)
+              ? "프리랜서 수락 또는 가격 확정 후 결제할 수 있습니다."
               : "이미 결제가 완료되었습니다."}
           </CardContent>
         </Card>

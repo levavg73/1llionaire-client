@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { publicApi } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
-import { Star, MapPin, SlidersHorizontal, X } from "lucide-react";
+import { Star, MapPin, SlidersHorizontal, X, MessageSquareText } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { FreelancerProfile } from "@/types";
 
@@ -21,7 +21,16 @@ const CATEGORIES = [
   "아나운서",
 ];
 
-async function getFreelancers(searchParams: Record<string, string | string[] | undefined>) {
+const SORT_OPTIONS = [
+  { value: "latest", label: "최신순" },
+  { value: "popular", label: "인기순" },
+  { value: "reviews", label: "후기순" },
+] as const;
+
+type SearchParams = Record<string, string | string[] | undefined>;
+type SortValue = (typeof SORT_OPTIONS)[number]["value"];
+
+async function getFreelancers(searchParams: SearchParams) {
   try {
     const res = await publicApi.getFreelancers(searchParams);
     return res.data?.data ?? { items: [], pagination: null };
@@ -30,39 +39,91 @@ async function getFreelancers(searchParams: Record<string, string | string[] | u
   }
 }
 
-function getCategory(searchParams: Record<string, string | string[] | undefined>) {
-  const value = searchParams.category;
+function getSingleParam(searchParams: SearchParams, key: string) {
+  const value = searchParams[key];
   return Array.isArray(value) ? value[0] : value;
+}
+
+function getSort(searchParams: SearchParams): SortValue {
+  const sort = getSingleParam(searchParams, "sort");
+  return SORT_OPTIONS.some((option) => option.value === sort) ? (sort as SortValue) : "popular";
+}
+
+function buildFreelancersHref(searchParams: SearchParams, overrides: Record<string, string | null>) {
+  const params = new URLSearchParams();
+
+  Object.entries(searchParams).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((item) => item && params.append(key, item));
+      return;
+    }
+
+    if (value) params.set(key, value);
+  });
+
+  Object.entries(overrides).forEach(([key, value]) => {
+    if (!value) {
+      params.delete(key);
+      return;
+    }
+
+    params.set(key, value);
+  });
+
+  const queryString = params.toString();
+  return queryString ? `/freelancers?${queryString}` : "/freelancers";
 }
 
 export default async function FreelancersPage({
   searchParams = {},
 }: {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: SearchParams;
 }) {
   const { items } = await getFreelancers(searchParams);
   const freelancers: FreelancerProfile[] = items;
-  const selectedCategory = getCategory(searchParams);
+  const selectedCategory = getSingleParam(searchParams, "category");
+  const selectedSort = getSort(searchParams);
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-10">
       <div className="mb-8 flex flex-col gap-5">
-        <div>
-          <h1 className="text-3xl font-bold">진행자 찾기</h1>
-          <p className="text-muted-foreground mt-2">
-            검증된 전문 MC·아나운서·쇼호스트를 만나보세요
-          </p>
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">진행자 찾기</h1>
+            <p className="text-muted-foreground mt-2">
+              검증된 전문 MC·아나운서·쇼호스트를 만나보세요
+            </p>
+          </div>
+
+          <div className="flex rounded-2xl border border-line bg-card p-1 shadow-sm">
+            {SORT_OPTIONS.map((option) => {
+              const active = selectedSort === option.value;
+              return (
+                <Link
+                  key={option.value}
+                  href={buildFreelancersHref(searchParams, { sort: option.value })}
+                  className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
+                    active
+                      ? "bg-navy text-white shadow-sm"
+                      : "text-slate hover:bg-surface hover:text-text"
+                  }`}
+                >
+                  {option.label}
+                </Link>
+              );
+            })}
+          </div>
         </div>
 
         <div className="rounded-2xl border bg-surface/60 p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm font-bold text-text">
               <SlidersHorizontal className="h-4 w-4 text-lavender" />
-              분야별 필터
+              분야 필터
             </div>
             {selectedCategory && (
               <Link
-                href="/freelancers"
+                href={buildFreelancersHref(searchParams, { category: null })}
                 className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold text-slate hover:bg-card hover:text-text"
               >
                 <X className="h-3 w-3" />
@@ -73,7 +134,7 @@ export default async function FreelancersPage({
 
           <div className="flex flex-wrap gap-2">
             <Link
-              href="/freelancers"
+              href={buildFreelancersHref(searchParams, { category: null })}
               className={`rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
                 !selectedCategory
                   ? "border-navy bg-navy text-white"
@@ -87,7 +148,7 @@ export default async function FreelancersPage({
               return (
                 <Link
                   key={category}
-                  href={`/freelancers?category=${encodeURIComponent(category)}`}
+                  href={buildFreelancersHref(searchParams, { category })}
                   className={`rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
                     active
                       ? "border-navy bg-navy text-white"
@@ -146,6 +207,9 @@ export default async function FreelancersPage({
                     {f.categories.slice(0, 2).map((c) => (
                       <Badge key={c} variant="secondary" className="text-xs">{c}</Badge>
                     ))}
+                    {f.languages.slice(0, 2).map((language) => (
+                      <Badge key={language} variant="outline" className="text-xs">{language}</Badge>
+                    ))}
                   </div>
 
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -157,6 +221,11 @@ export default async function FreelancersPage({
                         {formatPrice(f.base_price_min)}~
                       </span>
                     )}
+                  </div>
+
+                  <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
+                    <MessageSquareText className="h-3 w-3" />
+                    <span>후기 {f.review_count ?? 0}개</span>
                   </div>
                 </div>
               </article>

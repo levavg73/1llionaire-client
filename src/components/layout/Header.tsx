@@ -4,13 +4,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
-import { LogOut, Moon, Sun } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Bell, LogOut, Moon, Sun } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { UserRoleBadge } from "@/components/common/StatusBadge";
-import { authApi } from "@/lib/api";
+import { authApi, notificationApi } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 
 type Theme = "light" | "dark";
 
@@ -23,6 +24,15 @@ export function Header() {
   const [mounted, setMounted] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const lastScrollYRef = useRef(0);
+  const { data: unreadData } = useQuery({
+    queryKey: queryKeys.notificationUnreadCount,
+    queryFn: () => notificationApi.getUnreadCount(),
+    enabled: !!user,
+    refetchInterval: 10000,
+  });
+
+  const unreadCount = unreadData?.data?.data?.count ?? 0;
+
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem("theme") as Theme | null;
@@ -130,6 +140,16 @@ export function Header() {
 
           {user ? (
             <>
+              <Link href="/notifications">
+                <Button variant="ghost" size="icon" className="relative" aria-label="알림">
+                  <Bell className="h-4.5 w-4.5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-white">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </Button>
+              </Link>
               <Link href={dashboardHref}>
                 <Button variant="ghost" size="sm" className="gap-2">
                   <UserRoleBadge role={user.user_type} />

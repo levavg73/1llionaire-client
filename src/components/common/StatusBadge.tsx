@@ -20,8 +20,15 @@ const requestVariant: Record<RequestStatus, BadgeVariant> = {
   completed: "success", reviewed: "success", canceled: "secondary", disputed: "destructive",
 };
 const bookingVariant: Record<BookingStatus, BadgeVariant> = {
-  pending: "warning", confirmed: "info", completed: "success",
-  canceled: "secondary", disputed: "destructive",
+  pending: "warning",
+  negotiating: "info",
+  accepted: "success",
+  rejected: "destructive",
+  payment_pending: "gold",
+  confirmed: "info",
+  completed: "success",
+  canceled: "secondary",
+  disputed: "destructive",
 };
 const paymentVariant: Record<PaymentStatus, BadgeVariant> = {
   unpaid: "destructive", deposit_paid: "warning", fully_paid: "success",
