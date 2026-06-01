@@ -19,6 +19,23 @@ export const bookingApi = {
   getBooking: (id: string) =>
     http.get<BackendResponse<BookingDetail>>(`/api/bookings/${id}`),
 
+  acceptBooking: (id: string) =>
+    http.patch<BackendResponse<Booking>>(`/api/bookings/${id}/accept`),
+
+  rejectBooking: (id: string, reason?: string) =>
+    http.patch<BackendResponse<Booking>>(`/api/bookings/${id}/reject`, {
+      reason,
+    }),
+
+  createOffer: (id: string, data: { amount: number; message?: string }) =>
+    http.post<BackendResponse<unknown>>(`/api/bookings/${id}/offers`, data),
+
+  acceptOffer: (bookingId: string, offerId: string) =>
+    http.patch<BackendResponse<unknown>>(`/api/bookings/${bookingId}/offers/${offerId}/accept`),
+
+  rejectOffer: (bookingId: string, offerId: string) =>
+    http.patch<BackendResponse<unknown>>(`/api/bookings/${bookingId}/offers/${offerId}/reject`),
+
   cancelBooking: (id: string, reason?: string) =>
     http.patch<BackendResponse<Booking>>(`/api/bookings/${id}/cancel`, {
       cancel_reason: reason,
