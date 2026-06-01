@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -66,7 +67,6 @@ export function Header() {
 
   const toggleTheme = () => {
     const nextTheme: Theme = theme === "dark" ? "light" : "dark";
-
     document.documentElement.classList.toggle("dark", nextTheme === "dark");
     window.localStorage.setItem("theme", nextTheme);
     setTheme(nextTheme);
@@ -78,7 +78,6 @@ export function Header() {
     } catch {
       // ignore
     }
-
     clearAuth();
     queryClient.clear();
     router.push("/");
@@ -102,13 +101,14 @@ export function Header() {
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-3 text-text">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface ring-1 ring-line">
-            <img
+            <Image
               src="/favicon.ico"
               alt="프리마이크"
-              className="h-5 w-5 object-contain"
+              width={20}
+              height={20}
+              className="object-contain"
             />
           </span>
-
           <span className="text-[21px] font-extrabold tracking-[-0.03em]">
             프리마이크
           </span>
@@ -136,7 +136,6 @@ export function Header() {
                   <span className="hidden sm:inline">{user.name}</span>
                 </Button>
               </Link>
-
               <Button
                 variant="ghost"
                 size="icon"
@@ -153,7 +152,6 @@ export function Header() {
                   로그인
                 </Button>
               </Link>
-
               <Link href="/signup">
                 <Button variant="primaryCta" size="sm">
                   회원가입
