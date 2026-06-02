@@ -66,13 +66,38 @@ function formatReviewDate(date?: string) {
   }
 }
 
-export default async function FreelancerDetailPage({ params }: { params: { id: string } }) {
+export default async function FreelancerDetailPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams?: { reviews?: string | string[] };
+}) {
   const { id } = params;
-  const [freelancer, reviews] = await Promise.all([getFreelancer(id), getReviews(id)]);
+  const reviewsParam = searchParams?.reviews;
+  const shouldShowReviews = Array.isArray(reviewsParam) ? reviewsParam.includes("1") : reviewsParam === "1";
+  const freelancer = await getFreelancer(id);
 
   if (!freelancer) notFound();
 
   const f = freelancer;
+  const reviews = shouldShowReviews ? await getReviews(id) : [];
+  const reviewsHref = `/freelancers/${f.id}?reviews=1#reviews`;
+  const requestHref = `/customer/requests/new?freelancerId=${f.id}`;
+
+  const ActionButtons = ({ className = "" }: { className?: string }) => (
+    <div className={`space-y-3 ${className}`}>
+      <Button asChild variant="outline" className="w-full">
+        <Link href={reviewsHref}>⭐ 후기 확인하기 ({f.review_count}개)</Link>
+      </Button>
+
+      <Link href={requestHref}>
+        <Button className="w-full bg-navy text-white hover:bg-navy-light">
+          이 진행자로 요청서 작성
+        </Button>
+      </Link>
+    </div>
+  );
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-10">
@@ -97,10 +122,10 @@ export default async function FreelancerDetailPage({ params }: { params: { id: s
           <div className="flex flex-wrap gap-3 mt-3 text-sm text-muted-foreground">
             {f.region && <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{f.region}</span>}
             {f.career_years && <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />경력 {f.career_years}년</span>}
-            <a href="#reviews" className="flex items-center gap-1 font-medium text-foreground hover:text-lavender">
+            <Link href={reviewsHref} className="flex items-center gap-1 font-medium text-foreground hover:text-lavender">
               <Star className="h-3.5 w-3.5 fill-gold text-gold" />
               {f.avg_rating ? `${f.avg_rating.toFixed(1)} ` : "후기 "}({f.review_count}개 후기)
-            </a>
+            </Link>
           </div>
           <div className="flex flex-wrap gap-1 mt-3">
             {f.categories.map((c) => <Badge key={c} variant="secondary">{c}</Badge>)}
@@ -157,63 +182,67 @@ export default async function FreelancerDetailPage({ params }: { params: { id: s
             </Card>
           )}
 
-          {/* 후기 */}
-          <Card id="reviews">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between gap-3 text-base">
-                <span>후기 ({f.review_count})</span>
-                {f.avg_rating && (
-                  <span className="flex items-center gap-1 text-sm font-bold text-foreground">
-                    <Star className="h-4 w-4 fill-gold text-gold" />
-                    평균 {f.avg_rating.toFixed(1)}점
-                  </span>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {reviews.length > 0 ? (
-                reviews.map((r, i) => (
-                  <div key={r.id}>
-                    {i > 0 && <Separator className="mb-4" />}
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <div>
-                        <p className="text-sm font-medium">{r.customer?.name ?? "고객"}</p>
-                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                          {r.booking?.event_title && <span>{r.booking.event_title}</span>}
-                          {r.booking?.event_date && (
-                            <span className="inline-flex items-center gap-1">
-                              <CalendarDays className="h-3 w-3" />
-                              {formatReviewDate(r.booking.event_date)}
-                            </span>
-                          )}
+          <ActionButtons className="md:hidden" />
+
+          {/* 후기: 후기 확인하기 버튼을 누른 뒤에만 표시 */}
+          {shouldShowReviews && (
+            <Card id="reviews">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between gap-3 text-base">
+                  <span>후기 ({f.review_count})</span>
+                  {f.avg_rating && (
+                    <span className="flex items-center gap-1 text-sm font-bold text-foreground">
+                      <Star className="h-4 w-4 fill-gold text-gold" />
+                      평균 {f.avg_rating.toFixed(1)}점
+                    </span>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {reviews.length > 0 ? (
+                  reviews.map((r, i) => (
+                    <div key={r.id}>
+                      {i > 0 && <Separator className="mb-4" />}
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div>
+                          <p className="text-sm font-medium">{r.customer?.name ?? "고객"}</p>
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                            {r.booking?.event_title && <span>{r.booking.event_title}</span>}
+                            {r.booking?.event_date && (
+                              <span className="inline-flex items-center gap-1">
+                                <CalendarDays className="h-3 w-3" />
+                                {formatReviewDate(r.booking.event_date)}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <span className="flex items-center gap-0.5 text-sm font-medium shrink-0">
-                        <Star className="h-3.5 w-3.5 fill-gold text-gold" />
-                        {Number(r.total_score.toFixed(1))}
-                      </span>
-                    </div>
-                    {r.comment ? (
-                      <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-line">{r.comment}</p>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">작성된 코멘트가 없습니다.</p>
-                    )}
-                    <div className="flex flex-wrap gap-3 mt-2">
-                      {Object.entries(SCORE_LABELS).map(([key, label]) => (
-                        <span key={key} className="text-xs text-muted-foreground">
-                          {label} {(r as unknown as Record<string, number>)[key]}/5
+                        <span className="flex items-center gap-0.5 text-sm font-medium shrink-0">
+                          <Star className="h-3.5 w-3.5 fill-gold text-gold" />
+                          {Number(r.total_score.toFixed(1))}
                         </span>
-                      ))}
+                      </div>
+                      {r.comment ? (
+                        <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-line">{r.comment}</p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">작성된 코멘트가 없습니다.</p>
+                      )}
+                      <div className="flex flex-wrap gap-3 mt-2">
+                        {Object.entries(SCORE_LABELS).map(([key, label]) => (
+                          <span key={key} className="text-xs text-muted-foreground">
+                            {label} {(r as unknown as Record<string, number>)[key]}/5
+                          </span>
+                        ))}
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="rounded-xl bg-surface p-4 text-sm text-muted-foreground">
+                    아직 공개된 후기가 없습니다. 후기는 고객 작성 후 관리자 검수를 거쳐 공개됩니다.
                   </div>
-                ))
-              ) : (
-                <div className="rounded-xl bg-surface p-4 text-sm text-muted-foreground">
-                  아직 공개된 후기가 없습니다. 후기는 고객 작성 후 관리자 검수를 거쳐 공개됩니다.
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* 사이드: 가격 & 조건 */}
@@ -256,15 +285,7 @@ export default async function FreelancerDetailPage({ params }: { params: { id: s
             </CardContent>
           </Card>
 
-          <Button asChild variant="outline" className="w-full">
-            <a href="#reviews">⭐ 후기 확인하기 ({f.review_count}개)</a>
-          </Button>
-
-          <Link href={`/customer/requests/new?freelancerId=${f.id}`}>
-            <Button className="w-full bg-navy text-white hover:bg-navy-light">
-              이 진행자로 요청서 작성
-            </Button>
-          </Link>
+          <ActionButtons className="hidden md:block" />
         </div>
       </div>
     </div>

@@ -29,7 +29,14 @@ const FEATURES = [
   {
     icon: Shield,
     title: "검증된 전문가",
-    desc: "관리자 심사와 프로필 확인을 거친 진행자만 추천합니다",
+    desc: (
+      <>
+        관리자 심사와 프로필 확인을 거친 진행자만
+        <br className="hidden lg:block" />
+        <span className="lg:hidden"> </span>
+        추천합니다
+      </>
+    ),
   },
   {
     icon: Calculator,
@@ -39,14 +46,21 @@ const FEATURES = [
   {
     icon: Sparkles,
     title: "AI 후보추천",
-    desc: "섭외서에 작성된 조건에 맞는 후보를 빠르게 추려줍니다",
+    desc: (
+      <>
+        섭외서에 작성된 조건에 맞는 후보를
+        <br className="hidden lg:block" />
+        <span className="lg:hidden"> </span>
+        빠르게 추려줍니다
+      </>
+    ),
   },
 ];
 
 const HOW_IT_WORKS = [
   { step: "01", title: "요청서 작성", desc: "일정·장소·행사 조건 입력" },
   { step: "02", title: "AI 후보 추천", desc: "조건 기반 후보 빠른 비교" },
-  { step: "03", title: "1:1 문의 상담", desc: "궁금한 점과 섭외 조건 확인" },
+  { step: "03", title: "진행자와 고객 간 협의", desc: "견적·일정·진행 조건 조율" },
   { step: "04", title: "예약 확정", desc: "수락 후 행사 예약 완료" },
 ];
 
