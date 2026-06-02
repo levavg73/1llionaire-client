@@ -103,9 +103,11 @@ function SignupContent() {
     } catch (err) {
       const apiErr = err as ApiError<{ error: { message: string } }>;
 
-      setServerError(
-        apiErr.response?.data?.error?.message || "회원가입에 실패했습니다."
-      );
+      if ((apiErr.response?.status ?? 0) === 409) {
+        setServerError("이미 가입된 이메일입니다. 로그인 페이지에서 로그인해 주세요.");
+      } else {
+        setServerError(apiErr.response?.data?.error?.message || "회원가입에 실패했습니다.");
+      }
     }
   };
 

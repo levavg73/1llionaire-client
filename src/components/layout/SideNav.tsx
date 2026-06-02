@@ -17,7 +17,6 @@ import {
   Briefcase,
   BarChart3,
   Settings,
-  Bell,
   BrainCircuit,
 } from "lucide-react";
 
@@ -65,7 +64,6 @@ export function CustomerNav() {
         { href: "/customer/requests", label: "내 요청서", icon: <FileText className="h-4 w-4" /> },
         { href: "/customer/bookings", label: "내 예약", icon: <Calendar className="h-4 w-4" /> },
         { href: "/customer/chats", label: "상담", icon: <MessageSquare className="h-4 w-4" /> },
-        { href: "/notifications", label: "알림", icon: <Bell className="h-4 w-4" /> },
         { href: "/settings", label: "계정 설정", icon: <Settings className="h-4 w-4" /> },
       ]}
     />
@@ -83,7 +81,6 @@ export function FreelancerNav() {
         { href: "/freelancer/chats", label: "상담", icon: <MessageSquare className="h-4 w-4" /> },
         { href: "/freelancer/settlements", label: "정산 내역", icon: <Wallet className="h-4 w-4" /> },
         { href: "/freelancer/reviews", label: "의뢰인 후기", icon: <Star className="h-4 w-4" /> },
-        { href: "/notifications", label: "알림", icon: <Bell className="h-4 w-4" /> },
         { href: "/settings", label: "계정 설정", icon: <Settings className="h-4 w-4" /> },
       ]}
     />
@@ -102,7 +99,6 @@ export function AdminNav() {
         { href: "/admin/settlements", label: "정산 관리", icon: <BarChart3 className="h-4 w-4" /> },
         { href: "/admin/ai", label: "AI 단가 분석", icon: <BrainCircuit className="h-4 w-4" /> },
         { href: "/admin/reviews", label: "후기 관리", icon: <MessageSquare className="h-4 w-4" /> },
-        { href: "/notifications", label: "알림", icon: <Bell className="h-4 w-4" /> },
         { href: "/settings", label: "계정 설정", icon: <Settings className="h-4 w-4" /> },
       ]}
     />

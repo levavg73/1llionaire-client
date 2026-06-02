@@ -36,6 +36,91 @@ const passwordSchema = z
 
 type PasswordFormValues = z.infer<typeof passwordSchema>;
 
+
+// ── 소셜 로그인 사용자 비밀번호 설정 컴포넌트 ────────────────
+
+const setPasswordSchema = z
+  .object({
+    new_password: z
+      .string()
+      .min(8, "8자 이상 입력해 주세요.")
+      .regex(/[A-Z]/, "대문자를 포함해야 합니다.")
+      .regex(/[0-9]/, "숫자를 포함해야 합니다."),
+    confirm_password: z.string().min(1, "비밀번호 확인을 입력해 주세요."),
+  })
+  .refine((d) => d.new_password === d.confirm_password, {
+    path: ["confirm_password"],
+    message: "비밀번호가 일치하지 않습니다.",
+  });
+
+type SetPasswordValues = z.infer<typeof setPasswordSchema>;
+
+function SocialPasswordSection({ provider }: { provider: string }) {
+  const [show, setShow] = useState({ new: false, confirm: false });
+  const [done, setDone] = useState(false);
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<SetPasswordValues>({
+    resolver: zodResolver(setPasswordSchema),
+  });
+
+  const mutation = useMutation({
+    mutationFn: (data: SetPasswordValues) =>
+      authApi.setPassword(data.new_password),
+    onSuccess: () => { setDone(true); reset(); },
+  });
+
+  const providerLabel = provider === "kakao" ? "카카오" : "Google";
+
+  if (done) {
+    return (
+      <Card className="mb-6 border-emerald-200">
+        <CardContent className="pt-5 pb-5">
+          <p className="text-sm text-emerald-700 font-medium">✅ 비밀번호가 설정되었습니다. 이제 이메일로도 로그인할 수 있습니다.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-5 w-5 text-primary" />
+          <CardTitle className="text-base">비밀번호 설정</CardTitle>
+        </div>
+        <CardDescription>
+          {providerLabel} 계정으로 로그인 중입니다. 비밀번호를 설정하면 이메일로도 로그인할 수 있습니다.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {mutation.isError && (
+          <p role="alert" className="mb-4 text-sm text-destructive bg-destructive/5 border border-destructive/20 rounded-md px-3 py-2">
+            비밀번호 설정에 실패했습니다.
+          </p>
+        )}
+        <form onSubmit={handleSubmit((v) => mutation.mutate(v))} noValidate className="space-y-4">
+          <PasswordField
+            id="set_new_password"
+            label="새 비밀번호"
+            placeholder="8자 이상, 대문자·숫자 포함"
+            registration={register("new_password")}
+            error={errors.new_password?.message}
+          />
+          <PasswordField
+            id="set_confirm_password"
+            label="비밀번호 확인"
+            placeholder="새 비밀번호를 다시 입력"
+            registration={register("confirm_password")}
+            error={errors.confirm_password?.message}
+          />
+          <Button type="submit" className="w-full" disabled={mutation.isPending}>
+            {mutation.isPending ? "설정 중..." : "비밀번호 설정"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
 function PasswordField({
   id,
   label,
@@ -148,17 +233,7 @@ export default function SettingsPage() {
             </div>
 
             {user?.provider ? (
-              <Card className="mb-6 border-muted">
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="h-5 w-5 text-muted-foreground" />
-                    <CardTitle className="text-base text-muted-foreground">비밀번호 변경</CardTitle>
-                  </div>
-                  <CardDescription>
-                    {user.provider === "kakao" ? "카카오" : "Google"} 계정으로 로그인 중입니다.<br/>소셜 로그인 사용자는 별도 비밀번호가 없습니다.
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+              <SocialPasswordSection provider={user.provider} />
             ) : (
             <Card className="mb-6">
               <CardHeader>

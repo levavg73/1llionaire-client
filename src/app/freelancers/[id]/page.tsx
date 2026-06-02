@@ -190,7 +190,7 @@ export default async function FreelancerDetailPage({ params }: { params: { id: s
                       </div>
                       <span className="flex items-center gap-0.5 text-sm font-medium shrink-0">
                         <Star className="h-3.5 w-3.5 fill-gold text-gold" />
-                        {r.total_score.toFixed(1)}
+                        {Number(r.total_score.toFixed(1))}
                       </span>
                     </div>
                     {r.comment ? (
@@ -257,7 +257,7 @@ export default async function FreelancerDetailPage({ params }: { params: { id: s
           </Card>
 
           <Button asChild variant="outline" className="w-full">
-            <a href="#reviews">후기 확인하기</a>
+            <a href="#reviews">⭐ 후기 확인하기 ({f.review_count}개)</a>
           </Button>
 
           <Link href={`/customer/requests/new?freelancerId=${f.id}`}>

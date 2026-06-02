@@ -85,8 +85,12 @@ function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const dashboardPath =
-      currentUser.user_type === "admin"
+    // setup=name: 신규 소셜 가입자 이름 설정 필요
+    const needsNameSetup = window.location.search.includes("setup=name");
+
+    const dashboardPath = needsNameSetup
+      ? "/oauth-name-setup"
+      : currentUser.user_type === "admin"
         ? "/admin"
         : currentUser.user_type === "customer"
           ? "/customer/requests"

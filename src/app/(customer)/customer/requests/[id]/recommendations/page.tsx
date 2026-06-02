@@ -111,12 +111,12 @@ export default function RecommendationsPage({ params }: { params: { id: string }
                     </div>
                   </div>
                 </div>
-                {rec.recommendation_reason && (
-                  <div className="px-5 pb-4 border-t bg-muted/30 pt-3">
-                    <p className="text-xs font-medium text-muted-foreground mb-1">AI 추천 사유</p>
-                    <p className="text-sm">{rec.recommendation_reason}</p>
-                  </div>
-                )}
+                <div className="px-5 pb-4 border-t bg-muted/30 pt-3">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">✦ 추천 사유</p>
+                  <p className="text-sm leading-relaxed">
+                    {rec.recommendation_reason || `${f.display_name}님은 ${f.categories.slice(0,2).join(", ")} 분야에서 ${f.career_years ? `${f.career_years}년 경력의` : ""} 검증된 진행자입니다. ${f.avg_rating ? `평점 ${f.avg_rating.toFixed(1)}점으로 ` : ""}요청하신 조건에 적합한 후보로 선정되었습니다.`}
+                  </p>
+                </div>
                 <div className="px-5 pb-5 flex gap-2">
                   <Link href={`/freelancers/${f.id}`} className="flex-1">
                     <Button variant="outline" className="w-full gap-2" size="sm">
@@ -130,7 +130,7 @@ export default function RecommendationsPage({ params }: { params: { id: string }
                     disabled={bookingMutation.isPending}
                     onClick={() => bookingMutation.mutate(f.id)}
                   >
-                    {bookingMutation.isPending ? "요청 중..." : "예약 요청"}
+                    {bookingMutation.isPending ? "요청 중..." : "이 진행자로 진행하기"}
                   </Button>
                 </div>
               </CardContent>
