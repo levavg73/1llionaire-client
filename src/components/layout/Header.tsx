@@ -111,7 +111,7 @@ export function Header() {
         <Link href="/" className="flex items-center gap-3 text-text">
           <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-surface ring-1 ring-line">
             <Image
-              src="/brand-icon-96.webp"
+              src="/brand-icon.png"
               alt="프리마이크"
               width={36}
               height={36}

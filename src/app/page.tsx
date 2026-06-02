@@ -21,8 +21,8 @@ export const metadata: Metadata = {
 
 const TRUST_POINTS = [
   { icon: BadgeCheck, label: "검증된 프로필" },
-  { icon: Star, label: "후기 기반 추천" },
-  { icon: MessageSquareText, label: "전담 매니저 상담" },
+  { icon: Star, label: "AI 후보 추천" },
+  { icon: MessageSquareText, label: "1:1 문의 상담" },
 ];
 
 const FEATURES = [
@@ -33,20 +33,20 @@ const FEATURES = [
   },
   {
     icon: Star,
-    title: "후기 기반 매칭",
-    desc: "실제 고객 후기와 평점을 함께 보고 더 안심하고 선택할 수 있습니다.",
+    title: "AI 후보 추천",
+    desc: "섭외서의 행사 조건을 바탕으로 어울리는 진행자 후보를 빠르게 추천합니다.",
   },
   {
     icon: Clock,
-    title: "빠른 후보 추천",
-    desc: "전담 매니저가 행사 조건에 맞는 후보를 간결하게 추려드립니다.",
+    title: "1:1 문의 상담",
+    desc: "궁금한 점은 문의 상담으로 확인하고, 후보 비교와 섭외 과정을 이어갈 수 있습니다.",
   },
 ];
 
 const HOW_IT_WORKS = [
   { step: "01", title: "요청서 작성", desc: "일정·장소·행사 조건 입력" },
-  { step: "02", title: "후보 추천", desc: "검증된 진행자 후보 비교" },
-  { step: "03", title: "상담 & 견적", desc: "프로필 확인 후 견적 요청" },
+  { step: "02", title: "AI 후보 추천", desc: "조건 기반 후보 빠른 비교" },
+  { step: "03", title: "1:1 문의 상담", desc: "궁금한 점과 섭외 조건 확인" },
   { step: "04", title: "예약 확정", desc: "수락 후 행사 예약 완료" },
 ];
 
@@ -95,7 +95,9 @@ export default function HomePage() {
               </h1>
 
               <p className="mt-5 max-w-2xl text-[16px] font-semibold leading-[1.72] text-slate sm:mt-6 sm:text-[18px] lg:text-[21px] lg:leading-[1.65]">
-                기업행사·웨딩·라이브커머스·컨퍼런스에 맞는 전문 MC·아나운서·쇼호스트를 후기와 검증 기준으로 추천합니다.
+                <span>기업행사·웨딩·라이브커머스·컨퍼런스에 맞는 전문 MC·아나운서·쇼호스트를</span>
+                <br className="hidden lg:block" />
+                <span className="lg:mt-1 lg:inline-block">후기와 검증 기준으로 추천합니다.</span>
               </p>
 
               <ul className="mt-5 flex flex-wrap gap-2 sm:mt-7 sm:gap-3" aria-label="프리마이크 신뢰 요소">
@@ -136,7 +138,7 @@ export default function HomePage() {
             왜 프리마이크인가요?
           </h2>
           <p className="mt-3 text-[16px] font-medium leading-relaxed text-slate sm:text-[19px]">
-            검증, 후기, 매니저 추천을 한 번에 확인할 수 있습니다
+            검증, 후기, AI 후보 추천을 한 번에 확인할 수 있습니다
           </p>
         </div>
 
@@ -193,7 +195,7 @@ export default function HomePage() {
           행사에 맞는 진행자를 찾고 계신가요?
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-[16px] font-medium leading-relaxed text-slate sm:text-[19px]">
-          요청서를 남기면 조건에 맞는 후보를 비교할 수 있도록 도와드립니다.
+          요청서를 작성하면 행사 조건을 바탕으로 어울리는 후보를 비교할 수 있습니다.
         </p>
 
         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
