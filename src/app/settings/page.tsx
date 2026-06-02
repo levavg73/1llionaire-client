@@ -56,7 +56,6 @@ const setPasswordSchema = z
 type SetPasswordValues = z.infer<typeof setPasswordSchema>;
 
 function SocialPasswordSection({ provider }: { provider: string }) {
-  const [show, setShow] = useState({ new: false, confirm: false });
   const [done, setDone] = useState(false);
   const { register, handleSubmit, reset, formState: { errors } } = useForm<SetPasswordValues>({
     resolver: zodResolver(setPasswordSchema),
