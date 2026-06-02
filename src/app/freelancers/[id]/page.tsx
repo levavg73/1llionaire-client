@@ -86,16 +86,16 @@ export default async function FreelancerDetailPage({
   const requestHref = `/customer/requests/new?freelancerId=${f.id}`;
 
   const ActionButtons = ({ className = "" }: { className?: string }) => (
-    <div className={`space-y-3 ${className}`}>
+    <div className={`grid gap-4 ${className}`}>
       <Button asChild variant="outline" className="w-full">
         <Link href={reviewsHref}>⭐ 후기 확인하기 ({f.review_count}개)</Link>
       </Button>
 
-      <Link href={requestHref}>
-        <Button className="w-full bg-navy text-white hover:bg-navy-light">
+      <Button asChild className="w-full bg-navy text-white hover:bg-navy-light">
+        <Link href={requestHref}>
           이 진행자로 요청서 작성
-        </Button>
-      </Link>
+        </Link>
+      </Button>
     </div>
   );
 
@@ -285,7 +285,7 @@ export default async function FreelancerDetailPage({
             </CardContent>
           </Card>
 
-          <ActionButtons className="hidden md:block" />
+          <ActionButtons className="hidden md:grid" />
         </div>
       </div>
     </div>

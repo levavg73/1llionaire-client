@@ -92,7 +92,7 @@ export default function HomePage() {
           />
 
           <div className="container relative mx-auto flex min-h-[620px] max-w-7xl items-end px-4 pb-10 pt-36 sm:min-h-[620px] sm:items-center sm:px-6 sm:py-16 lg:min-h-[680px] lg:px-8 lg:py-20">
-            <div className="max-w-3xl">
+            <div className="max-w-3xl lg:-translate-x-6 xl:-translate-x-8 2xl:-translate-x-24">
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-lavender/25 bg-card/88 px-3 py-1.5 text-[13px] font-bold text-lavender shadow-sm backdrop-blur sm:mb-6 sm:px-4 sm:py-2 sm:text-[15px]">
                 <Mic className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
                 전문 진행자 매칭 플랫폼
