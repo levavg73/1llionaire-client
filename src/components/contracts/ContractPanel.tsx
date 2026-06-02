@@ -8,11 +8,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ContractStatusBadge } from "@/components/common/StatusBadge";
-import { BookingStatus, Contract } from "@/types";
+import type { BookingStatus, Contract } from "@/types";
 import { FileText, PenLine, Printer } from "lucide-react";
 
 function canGenerateContract(status?: BookingStatus) {
-  return status === "confirmed" || status === "completed";
+  return status === "confirmed" || status === "completion_requested" || status === "completed";
 }
 
 function getSafeMessage(error: unknown, fallback: string) {
@@ -118,11 +118,15 @@ export function ContractPanel({
             <div className="grid gap-2 rounded-xl border border-line bg-muted/30 p-3 sm:grid-cols-2">
               <div>
                 <p className="text-xs text-muted-foreground">고객 서명</p>
-                <p className="font-medium">{contract.customer_signed_at ? new Date(contract.customer_signed_at).toLocaleString("ko-KR") : "대기 중"}</p>
+                <p className="font-medium">
+                  {contract.customer_signed_at ? new Date(contract.customer_signed_at).toLocaleString("ko-KR") : "대기 중"}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">프리랜서 서명</p>
-                <p className="font-medium">{contract.freelancer_signed_at ? new Date(contract.freelancer_signed_at).toLocaleString("ko-KR") : "대기 중"}</p>
+                <p className="font-medium">
+                  {contract.freelancer_signed_at ? new Date(contract.freelancer_signed_at).toLocaleString("ko-KR") : "대기 중"}
+                </p>
               </div>
             </div>
 

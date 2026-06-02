@@ -40,7 +40,11 @@ export const bookingApi = {
       `/api/bookings/${bookingId}/offers/${offerId}/reject`
     ),
 
-  // 고객이 직접 행사 완료 확인
+  // 프리랜서가 행사 완료를 요청합니다.
+  requestCompletion: (id: string) =>
+    http.patch<BackendResponse<Booking>>(`/api/bookings/${id}/request-completion`),
+
+  // 고객이 행사 완료를 승인합니다.
   completeBooking: (id: string) =>
     http.patch<BackendResponse<Booking>>(`/api/bookings/${id}/complete-by-customer`),
 

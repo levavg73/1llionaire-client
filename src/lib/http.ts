@@ -162,12 +162,28 @@ async function request<T = unknown>(config: RequestConfig): Promise<HttpResponse
     };
 
     if (!response.ok) {
+      // 401: access token 만료 시 refresh 후 1회 재시도
       if (
         response.status === 401 &&
         typeof window !== "undefined" &&
+        !config.url.includes("/api/auth/refresh") &&
         !config.url.includes("/api/auth/me") &&
-        !config.url.includes("/api/users/me")
+        !(config as RequestConfig & { _retried?: boolean })._retried
       ) {
+        try {
+          const refreshRes = await fetch(buildUrl("/api/auth/refresh"), {
+            method: "POST",
+            credentials: "include",
+          });
+
+          if (refreshRes.ok) {
+            // 재시도 (무한루프 방지용 _retried 플래그)
+            return request<T>({ ...config, _retried: true } as RequestConfig);
+          }
+        } catch {
+          // refresh 실패 → 로그아웃 처리
+        }
+
         window.dispatchEvent(new Event("auth:unauthorized"));
       }
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { bookingApi } from "@/lib/apis/bookings_api";
+import { bookingApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,20 +13,31 @@ import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { Pagination } from "@/components/common/Pagination";
 import { FileText, MessageSquare } from "lucide-react";
 import { formatDate, formatPrice } from "@/lib/utils";
-import { Booking } from "@/types";
+import type { Booking, BookingStatus } from "@/types";
+
+const contractVisibleStatuses: BookingStatus[] = ["confirmed", "completion_requested", "completed"];
+
+function canViewContract(status: BookingStatus) {
+  return contractVisibleStatuses.includes(status);
+}
+
+function canCompleteBooking(booking: Booking) {
+  return (
+    booking.payment_status === "fully_paid" &&
+    (booking.booking_status === "confirmed" || booking.booking_status === "completion_requested")
+  );
+}
 
 export default function CustomerBookingsPage() {
   const [page, setPage] = useState(1);
   const [completeTarget, setCompleteTarget] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  // 고객이 행사 완료를 확인하는 mutation
-  // MVP: 관리자 수동 완료 대신 고객 직접 완료 승인 지원
   const completeMutation = useMutation({
-    mutationFn: (bookingId: string) =>
-      bookingApi.completeBooking(bookingId),
+    mutationFn: (bookingId: string) => bookingApi.completeBooking(bookingId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.customerBookings });
+      queryClient.invalidateQueries({ queryKey: queryKeys.freelancerBookings });
       setCompleteTarget(null);
     },
   });
@@ -38,6 +49,7 @@ export default function CustomerBookingsPage() {
 
   const items: Booking[] = data?.data?.data?.items ?? [];
   const pagination = data?.data?.data?.pagination;
+  const selectedBooking = items.find((booking) => booking.id === completeTarget) ?? null;
 
   return (
     <div className="animate-fade-in">
@@ -64,12 +76,18 @@ export default function CustomerBookingsPage() {
                     {booking.escrow_status && <EscrowStatusBadge status={booking.escrow_status} />}
                     <span className="text-xs text-muted-foreground">{formatDate(booking.event_date)}</span>
                   </div>
+
                   <h2 className="font-semibold truncate">{booking.event_title}</h2>
+
                   {booking.freelancer && (
-                    <p className="text-sm text-muted-foreground mt-0.5">진행자: {booking.freelancer.display_name}</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      진행자: {booking.freelancer.display_name}
+                    </p>
                   )}
+
                   <p className="text-sm font-medium mt-1">{formatPrice(booking.final_price)}</p>
                 </div>
+
                 <div className="flex flex-col items-end gap-2">
                   {booking.chat_room && (
                     <Link href={`/customer/chats/${booking.chat_room.id}`}>
@@ -79,7 +97,8 @@ export default function CustomerBookingsPage() {
                       </Button>
                     </Link>
                   )}
-                  {["confirmed", "completed"].includes(booking.booking_status) && (
+
+                  {canViewContract(booking.booking_status) && (
                     <Link href={`/contracts/${booking.id}`}>
                       <Button size="sm" variant="outline" className="gap-1 text-xs">
                         <FileText className="h-3.5 w-3.5" />
@@ -87,6 +106,7 @@ export default function CustomerBookingsPage() {
                       </Button>
                     </Link>
                   )}
+
                   {["payment_pending", "confirmed"].includes(booking.booking_status) &&
                     booking.payment_status !== "fully_paid" && (
                       <Link href={`/customer/bookings/${booking.id}/payment`}>
@@ -95,21 +115,24 @@ export default function CustomerBookingsPage() {
                         </Button>
                       </Link>
                     )}
-                  {/* 고객 행사 완료 승인 버튼 */}
-                  {booking.booking_status === "confirmed" &&
-                    booking.payment_status === "fully_paid" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-                        onClick={() => setCompleteTarget(booking.id)}
-                      >
-                        행사 완료 확인
-                      </Button>
-                    )}
+
+                  {canCompleteBooking(booking) && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                      disabled={completeMutation.isPending}
+                      onClick={() => setCompleteTarget(booking.id)}
+                    >
+                      {booking.booking_status === "completion_requested" ? "완료 요청 승인" : "행사 완료 확인"}
+                    </Button>
+                  )}
+
                   {booking.booking_status === "completed" && (
                     <Link href={`/reviews/new?bookingId=${booking.id}`}>
-                      <Button size="sm" variant="outline" className="text-xs">후기 작성</Button>
+                      <Button size="sm" variant="outline" className="text-xs">
+                        후기 작성
+                      </Button>
                     </Link>
                   )}
                 </div>
@@ -123,8 +146,8 @@ export default function CustomerBookingsPage() {
 
       <ConfirmModal
         open={completeTarget !== null}
-        onOpenChange={(o) => !o && setCompleteTarget(null)}
-        title="행사 완료를 확인하시겠습니까?"
+        onOpenChange={(open) => !open && setCompleteTarget(null)}
+        title={selectedBooking?.booking_status === "completion_requested" ? "완료 요청을 승인하시겠습니까?" : "행사 완료를 확인하시겠습니까?"}
         description="행사가 정상적으로 완료되었나요? 완료 처리 후 에스크로 정산이 진행됩니다."
         confirmLabel="완료 확인"
         onConfirm={() => completeTarget && completeMutation.mutate(completeTarget)}

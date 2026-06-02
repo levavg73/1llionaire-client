@@ -216,6 +216,7 @@ export type BookingStatus =
   | "rejected"
   | "payment_pending"
   | "confirmed"
+  | "completion_requested"
   | "completed"
   | "canceled"
   | "disputed";
@@ -242,6 +243,8 @@ export interface Booking {
   escrow_status?: EscrowStatus;
   escrow_held_at?: string | null;
   escrow_released_at?: string | null;
+  completion_requested_at?: string | null;
+  completed_at?: string | null;
   cancel_reason?: string;
   created_at: string;
   customer?: Pick<User, "id" | "name">;
@@ -425,6 +428,7 @@ export const BOOKING_STATUS_LABEL: Record<BookingStatus, string> = {
   rejected: "거절",
   payment_pending: "결제 대기",
   confirmed: "예약 확정",
+  completion_requested: "완료 승인 대기",
   completed: "행사 완료",
   canceled: "취소",
   disputed: "분쟁",

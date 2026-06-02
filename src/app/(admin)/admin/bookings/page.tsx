@@ -10,20 +10,20 @@ import { LoadingState, EmptyState, ErrorState } from "@/components/common/States
 import { Pagination } from "@/components/common/Pagination";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { formatDate, formatPrice } from "@/lib/utils";
-import { Booking, BookingStatus } from "@/types";
+import { BOOKING_STATUS_LABEL, type Booking, type BookingStatus } from "@/types";
 
-const BOOKING_STATUSES: BookingStatus[] = ["pending", "negotiating", "accepted", "rejected", "payment_pending", "confirmed", "completed", "canceled", "disputed"];
-const BOOKING_STATUS_LABEL: Record<BookingStatus, string> = {
-  pending: "수락 대기",
-  negotiating: "가격 협상 중",
-  accepted: "수락 완료",
-  rejected: "거절",
-  payment_pending: "결제 대기",
-  confirmed: "예약 확정",
-  completed: "행사 완료",
-  canceled: "취소",
-  disputed: "분쟁",
-};
+const BOOKING_STATUSES: BookingStatus[] = [
+  "pending",
+  "negotiating",
+  "accepted",
+  "rejected",
+  "payment_pending",
+  "confirmed",
+  "completion_requested",
+  "completed",
+  "canceled",
+  "disputed",
+];
 
 export default function AdminBookingsPage() {
   const [page, setPage] = useState(1);
@@ -52,7 +52,9 @@ export default function AdminBookingsPage() {
 
   return (
     <div className="animate-fade-in">
-      <div className="mb-6"><h1 className="text-2xl font-bold">예약 관리</h1></div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">예약 관리</h1>
+      </div>
 
       {isLoading && <LoadingState />}
       {isError && <ErrorState onRetry={() => refetch()} />}
@@ -69,22 +71,25 @@ export default function AdminBookingsPage() {
                     <PaymentStatusBadge status={b.payment_status} />
                     <SettlementStatusBadge status={b.settlement_status} />
                   </div>
+
                   <h2 className="font-semibold">{b.event_title}</h2>
                   <p className="text-sm text-muted-foreground mt-0.5">
                     {b.customer?.name} → {b.freelancer?.display_name} · {formatDate(b.event_date)} · {formatPrice(b.final_price)}
                   </p>
                 </div>
-                {/* 상태 변경 select */}
+
                 <select
                   className="h-8 px-2 rounded-md border border-input bg-background text-xs shrink-0"
                   value={b.booking_status}
-                  onChange={(e) =>
-                    setConfirm({ bookingId: b.id, field: "booking_status", value: e.target.value as BookingStatus })
+                  onChange={(event) =>
+                    setConfirm({ bookingId: b.id, field: "booking_status", value: event.target.value as BookingStatus })
                   }
                   aria-label="예약 상태 변경"
                 >
-                  {BOOKING_STATUSES.map((s) => (
-                    <option key={s} value={s}>{BOOKING_STATUS_LABEL[s]}</option>
+                  {BOOKING_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {BOOKING_STATUS_LABEL[status]}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -97,7 +102,7 @@ export default function AdminBookingsPage() {
 
       <ConfirmModal
         open={confirm !== null}
-        onOpenChange={(o) => !o && setConfirm(null)}
+        onOpenChange={(open) => !open && setConfirm(null)}
         title="예약 상태 변경"
         description={`상태를 "${confirm ? BOOKING_STATUS_LABEL[confirm.value] : ""}"으로 변경하시겠습니까?`}
         confirmLabel="변경"
