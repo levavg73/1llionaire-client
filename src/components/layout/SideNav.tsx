@@ -18,6 +18,7 @@ import {
   BarChart3,
   Settings,
   Bell,
+  BrainCircuit,
 } from "lucide-react";
 
 interface NavItem {
@@ -99,6 +100,7 @@ export function AdminNav() {
         { href: "/admin/bookings", label: "예약 관리", icon: <Calendar className="h-4 w-4" /> },
         { href: "/admin/payments", label: "결제 관리", icon: <CreditCard className="h-4 w-4" /> },
         { href: "/admin/settlements", label: "정산 관리", icon: <BarChart3 className="h-4 w-4" /> },
+        { href: "/admin/ai", label: "AI 단가 분석", icon: <BrainCircuit className="h-4 w-4" /> },
         { href: "/admin/reviews", label: "후기 관리", icon: <MessageSquare className="h-4 w-4" /> },
         { href: "/notifications", label: "알림", icon: <Bell className="h-4 w-4" /> },
         { href: "/settings", label: "계정 설정", icon: <Settings className="h-4 w-4" /> },

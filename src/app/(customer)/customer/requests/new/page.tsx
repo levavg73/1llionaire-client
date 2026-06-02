@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -57,15 +58,21 @@ function Field({ label, error, required, children }: { label: string; error?: st
   );
 }
 
-export default function NewRequestPage() {
+function NewRequestContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const freelancerId = searchParams.get("freelancerId");
   const queryClient = useQueryClient();
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
   });
 
   const mutation = useMutation({
-    mutationFn: (data: FormValues) => customerApi.createRequest(data),
+    mutationFn: (data: FormValues) => customerApi.createRequest({
+      ...data,
+      // 특정 진행자 지명 섭외 시 preferred_freelancer_ids에 포함
+      ...(freelancerId ? { preferred_freelancer_ids: [freelancerId] } : {}),
+    }),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.customerRequests });
       const id = res.data.data?.id;
@@ -75,6 +82,11 @@ export default function NewRequestPage() {
 
   return (
     <div className="animate-fade-in max-w-2xl">
+      {freelancerId && (
+        <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          ✅ 특정 진행자를 지명하여 요청서를 작성합니다. 제출 후 해당 진행자가 우선 검토됩니다.
+        </div>
+      )}
       <div className="flex items-center gap-3 mb-6">
         <Link href="/customer/requests">
           <Button variant="ghost" size="icon" aria-label="뒤로가기"><ArrowLeft className="h-4 w-4" /></Button>
@@ -169,5 +181,13 @@ export default function NewRequestPage() {
         </Button>
       </form>
     </div>
+  );
+}
+
+export default function NewRequestPage() {
+  return (
+    <Suspense fallback={null}>
+      <NewRequestContent />
+    </Suspense>
   );
 }

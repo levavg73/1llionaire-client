@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { bookingApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookingStatusBadge, PaymentStatusBadge, EscrowStatusBadge } from "@/components/common/StatusBadge";
 import { LoadingState, EmptyState, ErrorState } from "@/components/common/States";
+import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { Pagination } from "@/components/common/Pagination";
 import { FileText, MessageSquare } from "lucide-react";
 import { formatDate, formatPrice } from "@/lib/utils";
@@ -16,6 +17,19 @@ import { Booking } from "@/types";
 
 export default function CustomerBookingsPage() {
   const [page, setPage] = useState(1);
+  const [completeTarget, setCompleteTarget] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  // 고객이 행사 완료를 확인하는 mutation
+  // MVP: 관리자 수동 완료 대신 고객 직접 완료 승인 지원
+  const completeMutation = useMutation({
+    mutationFn: (bookingId: string) =>
+      bookingApi.completeBooking(bookingId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.customerBookings });
+      setCompleteTarget(null);
+    },
+  });
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: queryKeys.customerBookingsPage(page),
@@ -81,6 +95,18 @@ export default function CustomerBookingsPage() {
                         </Button>
                       </Link>
                     )}
+                  {/* 고객 행사 완료 승인 버튼 */}
+                  {booking.booking_status === "confirmed" &&
+                    booking.payment_status === "fully_paid" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                        onClick={() => setCompleteTarget(booking.id)}
+                      >
+                        행사 완료 확인
+                      </Button>
+                    )}
                   {booking.booking_status === "completed" && (
                     <Link href={`/reviews/new?bookingId=${booking.id}`}>
                       <Button size="sm" variant="outline" className="text-xs">후기 작성</Button>
@@ -94,6 +120,16 @@ export default function CustomerBookingsPage() {
       </div>
 
       {pagination && <Pagination pagination={pagination} onPageChange={setPage} />}
+
+      <ConfirmModal
+        open={completeTarget !== null}
+        onOpenChange={(o) => !o && setCompleteTarget(null)}
+        title="행사 완료를 확인하시겠습니까?"
+        description="행사가 정상적으로 완료되었나요? 완료 처리 후 에스크로 정산이 진행됩니다."
+        confirmLabel="완료 확인"
+        onConfirm={() => completeTarget && completeMutation.mutate(completeTarget)}
+        isLoading={completeMutation.isPending}
+      />
     </div>
   );
 }

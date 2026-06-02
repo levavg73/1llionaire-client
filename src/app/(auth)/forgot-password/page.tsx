@@ -1,16 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+/**
+ * 비밀번호 재설정
+ *
+ * MVP 단계에서는 이메일 발송 인프라가 없어 실제 재설정이 불가능합니다.
+ * 계정 설정(/settings)에서 현재 비밀번호를 알고 있으면 직접 변경할 수 있습니다.
+ */
 
-import type { ApiError } from "@/lib/api";
-import { authApi } from "@/lib/api";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -19,96 +17,43 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-const schema = z.object({
-  email: z.string().trim().toLowerCase().email("유효한 이메일을 입력해 주세요."),
-});
-
-type FormValues = z.infer<typeof schema>;
+import { Mail } from "lucide-react";
 
 export default function ForgotPasswordPage() {
-  const [serverError, setServerError] = useState("");
-  const [done, setDone] = useState(false);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: zodResolver(schema) });
-
-  const onSubmit = async (values: FormValues) => {
-    setServerError("");
-    setDone(false);
-
-    try {
-      await authApi.requestPasswordReset(values);
-      setDone(true);
-    } catch (err) {
-      const apiErr = err as ApiError<{ error: { message: string } }>;
-      setServerError(
-        apiErr.response?.data?.error?.message ||
-          "비밀번호 재설정 요청에 실패했습니다."
-      );
-    }
-  };
-
   return (
     <Card className="w-full max-w-[440px] rounded-2xl border-line bg-card shadow-sm">
       <CardHeader className="space-y-2 px-8 pb-4 pt-8 text-center">
-        <CardTitle className="text-[30px] font-extrabold tracking-[-0.03em] text-text">
+        <div className="flex justify-center mb-2">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+            <Mail className="h-6 w-6 text-muted-foreground" />
+          </span>
+        </div>
+        <CardTitle className="text-[26px] font-extrabold tracking-[-0.03em] text-text">
           비밀번호 재설정
         </CardTitle>
         <CardDescription className="text-[15px] text-slate">
-          가입한 이메일을 입력하면 재설정 안내를 보내드립니다
+          현재 MVP 단계에서는 이메일 재설정이 지원되지 않습니다
         </CardDescription>
       </CardHeader>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-5 px-8">
-          {serverError && (
-            <p className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">
-              {serverError}
-            </p>
-          )}
+      <CardContent className="px-8 space-y-4">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800 space-y-2">
+          <p className="font-semibold">대신 이렇게 해보세요</p>
+          <ul className="space-y-1 text-[13px]">
+            <li>• 로그인 후 <strong>계정 설정 → 비밀번호 변경</strong>에서 직접 변경할 수 있습니다.</li>
+            <li>• 카카오/구글 소셜 로그인을 사용하면 비밀번호가 필요 없습니다.</li>
+            <li>• 계정 복구가 필요하면 <strong>admin@freemic.co.kr</strong>로 문의해 주세요.</li>
+          </ul>
+        </div>
+      </CardContent>
 
-          {done && (
-            <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-              계정이 존재한다면 비밀번호 재설정 안내가 발송됩니다.
-            </p>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-[15px] font-bold text-text">
-              이메일
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="hello@example.com"
-              autoComplete="email"
-              className="h-12 rounded-xl text-[16px]"
-              {...register("email")}
-            />
-            {errors.email && (
-              <p className="text-xs text-destructive">{errors.email.message}</p>
-            )}
-          </div>
-        </CardContent>
-
-        <CardFooter className="flex flex-col gap-4 px-8 pb-8 pt-2">
-          <Button
-            type="submit"
-            variant="primaryCta"
-            className="h-12 w-full text-[17px]"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "요청 중..." : "재설정 안내 받기"}
-          </Button>
-          <Link href="/login" className="text-center text-[15px] font-bold text-text hover:underline">
+      <CardFooter className="flex flex-col gap-3 px-8 pb-8 pt-2">
+        <Link href="/login" className="w-full">
+          <Button variant="primaryCta" className="h-12 w-full text-[17px]">
             로그인으로 돌아가기
-          </Link>
-        </CardFooter>
-      </form>
+          </Button>
+        </Link>
+      </CardFooter>
     </Card>
   );
 }
