@@ -10,7 +10,8 @@ import { Bell, LogOut, Moon, Sun } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { UserRoleBadge } from "@/components/common/StatusBadge";
-import { authApi, notificationApi } from "@/lib/api";
+import { authApi } from "@/lib/apis/auth";
+import { notificationApi } from "@/lib/apis/notifications";
 import { queryKeys } from "@/lib/queryKeys";
 
 type Theme = "light" | "dark";
@@ -108,14 +109,15 @@ export function Header() {
       }`}
     >
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-3 text-text">
+        <Link href="/" prefetch={false} className="flex items-center gap-3 text-text">
           <Image
-            src="/brand-icon.png"
+            src="/brand-icon.webp"
             alt="프리마이크"
             width={48}
             height={48}
             className="h-10 w-10 object-contain sm:h-11 sm:w-11"
-            priority
+            sizes="44px"
+            fetchPriority="low"
           />
           <span className="text-[21px] font-extrabold tracking-[-0.03em]">
             프리마이크
@@ -138,7 +140,7 @@ export function Header() {
 
           {user ? (
             <>
-              <Link href="/notifications">
+              <Link href="/notifications" prefetch={false}>
                 <Button variant="ghost" size="icon" className="relative" aria-label="알림">
                   <Bell className="h-4.5 w-4.5" />
                   {unreadCount > 0 && (
@@ -148,7 +150,7 @@ export function Header() {
                   )}
                 </Button>
               </Link>
-              <Link href={dashboardHref}>
+              <Link href={dashboardHref} prefetch={false}>
                 <Button variant="ghost" size="sm" className="gap-2">
                   <UserRoleBadge role={user.user_type} />
                   <span className="hidden sm:inline">{user.name}</span>
@@ -165,12 +167,12 @@ export function Header() {
             </>
           ) : (
             <>
-              <Link href="/login">
+              <Link href="/login" prefetch={false}>
                 <Button variant="ghost" size="sm">
                   로그인
                 </Button>
               </Link>
-              <Link href="/signup">
+              <Link href="/signup" prefetch={false}>
                 <Button variant="primaryCta" size="sm">
                   회원가입
                 </Button>

@@ -66,7 +66,7 @@ const HOW_IT_WORKS = [
 
 export default function HomePage() {
   return (
-    <div className="animate-fade-in bg-clear text-text">
+    <div className="bg-clear text-text">
       <section className="relative overflow-hidden bg-clear" aria-label="히어로 섹션">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,_rgba(97,92,255,0.16),_transparent_34%),radial-gradient(circle_at_90%_10%,_rgba(49,54,142,0.12),_transparent_32%)]" aria-hidden="true" />
 
@@ -130,14 +130,14 @@ export default function HomePage() {
               </ul>
 
               <div className="mt-7 flex flex-col gap-3 sm:mt-9 sm:flex-row">
-                <Link href="/signup" className="w-full sm:w-auto">
+                <Link href="/signup" prefetch={false} className="w-full sm:w-auto">
                   <Button size="lg" variant="primaryCta" className="h-[52px] w-full text-[16px] sm:w-auto sm:text-[17px]">
                     진행자 섭외 요청하기
                     <ChevronRight className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </Link>
 
-                <Link href="/freelancers" className="w-full sm:w-auto">
+                <Link href="/freelancers" prefetch={false} className="w-full sm:w-auto">
                   <Button size="lg" variant="secondaryCta" className="h-[52px] w-full text-[16px] sm:w-auto sm:text-[17px]">
                     <PlayCircle className="h-4 w-4" aria-hidden="true" />
                     진행자 둘러보기
@@ -216,12 +216,12 @@ export default function HomePage() {
         </p>
 
         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
-          <Link href="/signup" className="w-full sm:w-auto">
+          <Link href="/signup" prefetch={false} className="w-full sm:w-auto">
             <Button size="lg" variant="primaryCta" className="w-full sm:w-auto">
               고객으로 시작하기
             </Button>
           </Link>
-          <Link href="/signup?role=freelancer" className="w-full sm:w-auto">
+          <Link href="/signup?role=freelancer" prefetch={false} className="w-full sm:w-auto">
             <Button size="lg" variant="tertiary" className="w-full sm:w-auto">
               진행자로 등록하기
             </Button>

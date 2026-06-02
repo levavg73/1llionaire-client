@@ -1,4 +1,4 @@
-import { authApi } from "@/lib/api";
+import { authApi } from "@/lib/apis/auth";
 import { User } from "@/types";
 
 export function getAuthUser(payload: unknown): User | null {
