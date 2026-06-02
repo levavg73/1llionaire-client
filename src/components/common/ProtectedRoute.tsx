@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
+import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { UserType } from "@/types";
+import type { UserType } from "@/types";
 import { LoadingState } from "@/components/common/States";
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  children: ReactNode;
   allowedRoles?: UserType[];
 }
 
@@ -17,7 +18,7 @@ function getCurrentPath() {
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isServerWaking } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -34,7 +35,17 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     }
   }, [user, isLoading, allowedRoles, router]);
 
-  if (isLoading) return <LoadingState />;
+  if (isLoading) {
+    return (
+      <LoadingState
+        message={
+          isServerWaking
+            ? "서버 응답을 준비 중입니다. 첫 접속은 잠시 걸릴 수 있어요."
+            : "로그인 상태를 확인하는 중..."
+        }
+      />
+    );
+  }
   if (!user) return null;
   if (allowedRoles && !allowedRoles.includes(user.user_type)) return null;
 

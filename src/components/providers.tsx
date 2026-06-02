@@ -6,15 +6,12 @@ import {
   useEffect,
   useState,
   useCallback,
-  useRef,
-  ReactNode,
 } from "react";
-import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import type { ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { authApi, notificationApi } from "@/lib/api";
-import { getAuthUser } from "@/lib/auth";
-import { User } from "@/types";
-import { queryKeys } from "@/lib/queryKeys";
+import { loadCurrentUser } from "@/lib/auth";
+import type { User } from "@/types";
 
 // ─── Auth Context ─────────────────────────────────────────────
 
@@ -22,6 +19,7 @@ interface AuthState {
   user: User | null;
   token: null;
   isLoading: boolean;
+  isServerWaking: boolean;
   setAuth: (user: User, token?: string) => void;
   clearAuth: () => void;
   refreshUser: () => Promise<User | null>;
@@ -31,6 +29,7 @@ export const AuthContext = createContext<AuthState>({
   user: null,
   token: null,
   isLoading: true,
+  isServerWaking: false,
   setAuth: () => {},
   clearAuth: () => {},
   refreshUser: async () => null,
@@ -38,117 +37,63 @@ export const AuthContext = createContext<AuthState>({
 
 export const useAuth = () => useContext(AuthContext);
 
-// ─── SSE 알림 훅 ─────────────────────────────────────────────
-// 로그인 상태에서만 SSE 연결 유지
-// 연결 끊김 시 5초 후 자동 재연결 (최대 5회)
-
-function useSseNotifications(userId: string | null) {
-  const queryClient = useQueryClient();
-  const esRef = useRef<EventSource | null>(null);
-  const retryCountRef = useRef(0);
-  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const MAX_RETRIES = 5;
-
-  const connect = useCallback(() => {
-    if (!userId) return;
-    if (esRef.current) {
-      esRef.current.close();
-      esRef.current = null;
-    }
-
-    const es = notificationApi.connectStream();
-    esRef.current = es;
-
-    es.addEventListener("connected", () => {
-      retryCountRef.current = 0;
-    });
-
-    es.addEventListener("message", () => {
-      // 새 알림 수신 시 미확인 카운트 + 목록 갱신
-      queryClient.invalidateQueries({ queryKey: queryKeys.notificationUnreadCount });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications });
-    });
-
-    es.onerror = () => {
-      es.close();
-      esRef.current = null;
-
-      if (retryCountRef.current < MAX_RETRIES) {
-        retryCountRef.current += 1;
-        const delay = Math.min(1000 * 2 ** retryCountRef.current, 30_000);
-        retryTimerRef.current = setTimeout(connect, delay);
-      }
-    };
-  }, [userId, queryClient]);
-
-  useEffect(() => {
-    if (!userId) {
-      esRef.current?.close();
-      esRef.current = null;
-      return;
-    }
-
-    connect();
-
-    return () => {
-      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-      esRef.current?.close();
-      esRef.current = null;
-    };
-  }, [userId, connect]);
-}
-
 // ─── Auth Provider ────────────────────────────────────────────
 
 function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isServerWaking, setIsServerWaking] = useState(false);
 
-  useSseNotifications(user?.id ?? null);
+
+  const handleOAuthSuccessRedirect = useCallback((currentUser: User | null) => {
+    if (
+      !currentUser ||
+      typeof window === "undefined" ||
+      !window.location.search.includes("login_success=1")
+    ) {
+      return;
+    }
+
+    const dashboardPath =
+      currentUser.user_type === "admin"
+        ? "/admin"
+        : currentUser.user_type === "customer"
+          ? "/customer/requests"
+          : "/freelancer/profile";
+
+    window.history.replaceState({}, "", window.location.pathname);
+    window.location.replace(dashboardPath);
+  }, []);
 
   const refreshUser = useCallback(async () => {
-    try {
-      const res = await authApi.me();
-      const currentUser = getAuthUser(res.data);
-      setUser(currentUser);
-      return currentUser;
-    } catch {
-      setUser(null);
-      return null;
-    }
+    const currentUser = await loadCurrentUser();
+    setUser(currentUser);
+    return currentUser;
   }, []);
 
   useEffect(() => {
     let mounted = true;
+    let wakeMessageTimer: ReturnType<typeof setTimeout> | null = null;
 
     const bootstrap = async () => {
+      wakeMessageTimer = setTimeout(() => {
+        if (mounted) setIsServerWaking(true);
+      }, 3000);
+
       try {
-        const res = await authApi.me();
-        const currentUser = getAuthUser(res.data);
+        const currentUser = await loadCurrentUser();
+
         if (mounted) {
           setUser(currentUser);
-
-          // OAuth 로그인 성공 후 대시보드로 이동
-          // ProtectedRoute의 isLoading race condition을 피하기 위해 여기서 처리
-          if (
-            currentUser &&
-            typeof window !== "undefined" &&
-            window.location.search.includes("login_success=1")
-          ) {
-            const dashboardPath =
-              currentUser.user_type === "admin"
-                ? "/admin"
-                : currentUser.user_type === "customer"
-                  ? "/customer/requests"
-                  : "/freelancer/profile";
-            window.history.replaceState({}, "", window.location.pathname);
-            window.location.replace(dashboardPath);
-          }
+          handleOAuthSuccessRedirect(currentUser);
         }
-      } catch {
-        if (mounted) setUser(null);
       } finally {
-        if (mounted) setIsLoading(false);
+        if (wakeMessageTimer) clearTimeout(wakeMessageTimer);
+
+        if (mounted) {
+          setIsServerWaking(false);
+          setIsLoading(false);
+        }
       }
     };
 
@@ -161,9 +106,10 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       mounted = false;
+      if (wakeMessageTimer) clearTimeout(wakeMessageTimer);
       window.removeEventListener("auth:unauthorized", handleUnauthorized);
     };
-  }, []);
+  }, [handleOAuthSuccessRedirect]);
 
   const setAuth = useCallback((newUser: User) => {
     setUser(newUser);
@@ -177,6 +123,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     user,
     token: null,
     isLoading,
+    isServerWaking,
     setAuth,
     clearAuth,
     refreshUser,

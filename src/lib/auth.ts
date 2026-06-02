@@ -1,4 +1,5 @@
-import { User } from "@/types";
+import type { User } from "@/types";
+import { authApi } from "./apis/auth";
 
 export function getAuthUser(payload: unknown): User | null {
   if (!payload || typeof payload !== "object") return null;
@@ -15,4 +16,20 @@ export function getAuthUser(payload: unknown): User | null {
   if (typeof root.id === "string" && typeof root.email === "string") return root as unknown as User;
 
   return null;
+}
+
+
+export async function loadCurrentUser(): Promise<User | null> {
+  try {
+    const res = await authApi.me();
+    return getAuthUser(res.data);
+  } catch {
+    try {
+      await authApi.refresh();
+      const retry = await authApi.me();
+      return getAuthUser(retry.data);
+    } catch {
+      return null;
+    }
+  }
 }

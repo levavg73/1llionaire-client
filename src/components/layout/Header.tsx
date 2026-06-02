@@ -49,26 +49,6 @@ export function Header() {
   }, []);
 
   useEffect(() => {
-    if (!user || typeof window === "undefined" || typeof EventSource === "undefined") return;
-
-    const source = new EventSource(notificationApi.getStreamUrl(), { withCredentials: true });
-
-    source.onmessage = () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notificationUnreadCount });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications });
-    };
-
-    source.addEventListener("connected", () => undefined);
-    source.onerror = () => {
-      // SSE가 끊겨도 기존 10초 polling이 fallback으로 동작합니다.
-    };
-
-    return () => {
-      source.close();
-    };
-  }, [user, queryClient]);
-
-  useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       const lastScrollY = lastScrollYRef.current;

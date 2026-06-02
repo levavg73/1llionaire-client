@@ -1,7 +1,7 @@
 const rawBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
 const baseURL = rawBaseUrl.replace(/\/+$/, "");
 
-const DEFAULT_TIMEOUT_MS = 45000;
+const DEFAULT_TIMEOUT_MS = 75000;
 
 type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
@@ -13,6 +13,7 @@ interface RequestConfig {
   url: string;
   params?: QueryParams;
   data?: unknown;
+  _retried?: boolean;
 }
 
 export interface HttpResponse<T = unknown> {
@@ -128,6 +129,45 @@ function getErrorMessage(data: unknown) {
   return "API request failed.";
 }
 
+
+const AUTH_REFRESH_EXCLUDED_PATHS = [
+  "/api/auth/refresh",
+  "/api/auth/me",
+  "/api/auth/login",
+  "/api/auth/signup",
+  "/api/auth/logout",
+  "/api/auth/password-reset/request",
+];
+
+let refreshPromise: Promise<boolean> | null = null;
+
+function isAuthRefreshExcludedPath(url: string) {
+  const path = url.split("?")[0];
+  return AUTH_REFRESH_EXCLUDED_PATHS.some((excludedPath) => path.startsWith(excludedPath));
+}
+
+async function refreshAccessToken() {
+  if (!refreshPromise) {
+    const controller = new AbortController();
+    const timeoutId = globalThis.setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+
+    refreshPromise = fetch(buildUrl("/api/auth/refresh"), {
+      method: "POST",
+      headers: { Accept: "application/json" },
+      credentials: "include",
+      signal: controller.signal,
+    })
+      .then((response) => response.ok)
+      .catch(() => false)
+      .finally(() => {
+        globalThis.clearTimeout(timeoutId);
+        refreshPromise = null;
+      });
+  }
+
+  return refreshPromise;
+}
+
 async function request<T = unknown>(config: RequestConfig): Promise<HttpResponse<T>> {
   const controller = new AbortController();
   const timeoutId = globalThis.setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
@@ -166,22 +206,14 @@ async function request<T = unknown>(config: RequestConfig): Promise<HttpResponse
       if (
         response.status === 401 &&
         typeof window !== "undefined" &&
-        !config.url.includes("/api/auth/refresh") &&
-        !config.url.includes("/api/auth/me") &&
-        !(config as RequestConfig & { _retried?: boolean })._retried
+        !config._retried &&
+        !isAuthRefreshExcludedPath(config.url)
       ) {
-        try {
-          const refreshRes = await fetch(buildUrl("/api/auth/refresh"), {
-            method: "POST",
-            credentials: "include",
-          });
+        const refreshed = await refreshAccessToken();
 
-          if (refreshRes.ok) {
-            // 재시도 (무한루프 방지용 _retried 플래그)
-            return request<T>({ ...config, _retried: true } as RequestConfig);
-          }
-        } catch {
-          // refresh 실패 → 로그아웃 처리
+        if (refreshed) {
+          // 재시도 (무한루프 방지용 _retried 플래그)
+          return request<T>({ ...config, _retried: true });
         }
 
         window.dispatchEvent(new Event("auth:unauthorized"));
