@@ -7,9 +7,11 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
   ReactNode,
 } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { usePathname } from "next/navigation";
 import { loadCurrentUser } from "@/lib/auth";
 import { User } from "@/types";
 
@@ -46,7 +48,30 @@ export const AuthContext = createContext<AuthState>({
 
 export const useAuth = () => useContext(AuthContext);
 
+const PUBLIC_AUTH_BOOTSTRAP_PATHS = new Set([
+  "/",
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/oauth-role",
+  "/reviews",
+]);
+
+function shouldBootstrapAuth(pathname: string | null): boolean {
+  if (typeof window !== "undefined" && window.location.search.includes("login_success=1")) {
+    return true;
+  }
+
+  if (!pathname) return true;
+  if (PUBLIC_AUTH_BOOTSTRAP_PATHS.has(pathname)) return false;
+  if (pathname === "/freelancers" || pathname.startsWith("/freelancers/")) return false;
+
+  return true;
+}
+
 function AuthProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const sessionCheckedRef = useRef(false);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isServerWaking, setIsServerWaking] = useState(false);
@@ -80,13 +105,42 @@ function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
+    const handleUnauthorized = () => {
+      sessionCheckedRef.current = false;
+      setUser(null);
+    };
+
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+
+    if (!shouldBootstrapAuth(pathname)) {
+      setIsLoading(false);
+      setIsServerWaking(false);
+
+      return () => {
+        mounted = false;
+        window.removeEventListener("auth:unauthorized", handleUnauthorized);
+      };
+    }
+
+    if (sessionCheckedRef.current) {
+      setIsLoading(false);
+
+      return () => {
+        mounted = false;
+        window.removeEventListener("auth:unauthorized", handleUnauthorized);
+      };
+    }
+
     const bootstrap = async () => {
+      setIsLoading(true);
+
       const wakeTimer = window.setTimeout(() => {
         if (mounted) setIsServerWaking(true);
       }, 3000);
 
       try {
         const currentUser = await loadCurrentUser();
+        sessionCheckedRef.current = true;
 
         if (mounted) {
           setUser(currentUser);
@@ -102,18 +156,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    const handleUnauthorized = () => {
-      setUser(null);
-    };
-
-    window.addEventListener("auth:unauthorized", handleUnauthorized);
     bootstrap();
 
     return () => {
       mounted = false;
       window.removeEventListener("auth:unauthorized", handleUnauthorized);
     };
-  }, [applyOAuthRedirect]);
+  }, [applyOAuthRedirect, pathname]);
 
   const setAuth = useCallback((newUser: User) => {
     setUser(newUser);

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell, LogOut, Mic, Moon, Sun } from "lucide-react";
+import { Bell, LogOut, Moon, Sun } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -31,7 +32,6 @@ export function Header() {
   });
 
   const unreadCount = unreadData?.data?.data?.count ?? 0;
-
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem("theme") as Theme | null;
@@ -109,8 +109,15 @@ export function Header() {
     >
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-3 text-text">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-navy to-lavender text-white shadow-sm ring-1 ring-line" aria-hidden="true">
-            <Mic className="h-5 w-5" />
+          <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-surface ring-1 ring-line">
+            <Image
+              src="/brand-icon-96.webp"
+              alt="프리마이크"
+              width={36}
+              height={36}
+              className="h-full w-full object-cover"
+              priority
+            />
           </span>
           <span className="text-[21px] font-extrabold tracking-[-0.03em]">
             프리마이크
