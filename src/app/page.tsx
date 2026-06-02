@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import {
   BadgeCheck,
   ChevronRight,
-  Clock,
-  MessageSquareText,
+  BadgeDollarSign,
+  Calculator,
   Mic,
   PlayCircle,
   Shield,
-  Star,
+  Sparkles,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -20,26 +20,26 @@ export const metadata: Metadata = {
 };
 
 const TRUST_POINTS = [
-  { icon: BadgeCheck, label: "검증된 프로필" },
-  { icon: Star, label: "AI 후보 추천" },
-  { icon: MessageSquareText, label: "1:1 문의 상담" },
+  { icon: BadgeCheck, label: "검증된 전문가" },
+  { icon: BadgeDollarSign, label: "AI 예상단가" },
+  { icon: Sparkles, label: "AI 후보추천" },
 ];
 
 const FEATURES = [
   {
     icon: Shield,
     title: "검증된 전문가",
-    desc: "관리자 심사와 프로필 확인을 거친 진행자만 추천합니다.",
+    desc: "관리자 심사와 프로필 확인을 거친 진행자만 추천합니다",
   },
   {
-    icon: Star,
-    title: "AI 후보 추천",
-    desc: "섭외서의 행사 조건을 바탕으로 어울리는 진행자 후보를 빠르게 추천합니다.",
+    icon: Calculator,
+    title: "AI 예상단가",
+    desc: "섭외 전 예산 기준을 먼저 확인합니다",
   },
   {
-    icon: Clock,
-    title: "1:1 문의 상담",
-    desc: "궁금한 점은 문의 상담으로 확인하고, 후보 비교와 섭외 과정을 이어갈 수 있습니다.",
+    icon: Sparkles,
+    title: "AI 후보추천",
+    desc: "섭외서에 작성된 조건에 맞는 후보를 빠르게 추려줍니다",
   },
 ];
 
@@ -87,15 +87,18 @@ export default function HomePage() {
               <h1 className="text-[38px] font-extrabold leading-[1.08] tracking-[-0.055em] text-text sm:text-[52px] md:text-[60px] lg:text-[72px]">
                 행사에 맞는
                 <br />
-                <span className="bg-gradient-to-r from-navy to-lavender bg-clip-text text-transparent">
+                <span className="text-navy drop-shadow-[0_2px_18px_rgba(67,74,206,0.22)] dark:text-[#9b92ff] dark:drop-shadow-[0_2px_22px_rgba(155,146,255,0.32)]">
                   진행자를 빠르게
                 </span>
                 <br />
                 찾으세요
               </h1>
 
-              <p className="mt-5 max-w-2xl text-[16px] font-semibold leading-[1.72] text-slate sm:mt-6 sm:text-[18px] lg:text-[21px] lg:leading-[1.65]">
-                <span>기업행사·웨딩·라이브커머스·컨퍼런스에 맞는 전문 MC·아나운서·쇼호스트를</span>
+              <p className="mt-5 max-w-2xl text-[16px] font-semibold leading-[1.72] text-slate dark:text-white/80 sm:mt-6 sm:text-[18px] lg:text-[21px] lg:leading-[1.65]">
+                <span>기업행사·웨딩·라이브커머스·컨퍼런스에 맞는</span>
+                <br className="block lg:hidden" />
+                <span className="hidden lg:inline"> </span>
+                <span>전문 MC·아나운서·쇼호스트를</span>
                 <br className="hidden lg:block" />
                 <span className="lg:mt-1 lg:inline-block">후기와 검증 기준으로 추천합니다.</span>
               </p>
@@ -138,7 +141,7 @@ export default function HomePage() {
             왜 프리마이크인가요?
           </h2>
           <p className="mt-3 text-[16px] font-medium leading-relaxed text-slate sm:text-[19px]">
-            검증, 후기, AI 후보 추천을 한 번에 확인할 수 있습니다
+            검증, 예상단가, AI 후보 추천을 한 번에 확인할 수 있습니다
           </p>
         </div>
 

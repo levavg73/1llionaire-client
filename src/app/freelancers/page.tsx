@@ -13,13 +13,13 @@ export const metadata: Metadata = {
 };
 
 const CATEGORIES = [
-  "기업행사 MC",
-  "웨딩 사회자",
-  "쇼호스트",
-  "컨퍼런스 MC",
-  "라이브커머스",
-  "아나운서",
-];
+  { value: "기업행사 MC", label: "기업행사MC" },
+  { value: "웨딩 사회자", label: "웨딩 사회자" },
+  { value: "쇼호스트", label: "쇼호스트" },
+  { value: "컨퍼런스 MC", label: "컨퍼런스 MC" },
+  { value: "라이브커머스", label: "라이브커머스" },
+  { value: "아나운서", label: "아나운서" },
+] as const;
 
 const SORT_OPTIONS = [
   { value: "latest", label: "최신순" },
@@ -47,6 +47,32 @@ function getSingleParam(searchParams: SearchParams, key: string) {
 function getSort(searchParams: SearchParams): SortValue {
   const sort = getSingleParam(searchParams, "sort");
   return SORT_OPTIONS.some((option) => option.value === sort) ? (sort as SortValue) : "popular";
+}
+
+function getCategory(searchParams: SearchParams) {
+  const category = getSingleParam(searchParams, "category");
+
+  if (!category || category === "all" || category === "전체") return undefined;
+
+  return CATEGORIES.some((item) => item.value === category) ? category : undefined;
+}
+
+function normalizeFreelancerSearchParams(searchParams: SearchParams) {
+  const normalized: SearchParams = { ...searchParams };
+  const category = getCategory(searchParams);
+
+  if (category) {
+    normalized.category = category;
+  } else {
+    delete normalized.category;
+  }
+
+  normalized.sort = getSort(searchParams);
+  return normalized;
+}
+
+function getCategoryLabel(category?: string) {
+  return CATEGORIES.find((item) => item.value === category)?.label ?? category;
 }
 
 function buildFreelancersHref(searchParams: SearchParams, overrides: Record<string, string | null>) {
@@ -79,9 +105,10 @@ export default async function FreelancersPage({
 }: {
   searchParams?: SearchParams;
 }) {
-  const { items } = await getFreelancers(searchParams);
+  const normalizedSearchParams = normalizeFreelancerSearchParams(searchParams);
+  const { items } = await getFreelancers(normalizedSearchParams);
   const freelancers: FreelancerProfile[] = items;
-  const selectedCategory = getSingleParam(searchParams, "category");
+  const selectedCategory = getCategory(searchParams);
   const selectedSort = getSort(searchParams);
 
   return (
@@ -101,7 +128,7 @@ export default async function FreelancersPage({
               return (
                 <Link
                   key={option.value}
-                  href={buildFreelancersHref(searchParams, { sort: option.value })}
+                  href={buildFreelancersHref(normalizedSearchParams, { sort: option.value })}
                   className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
                     active
                       ? "bg-navy text-white shadow-sm"
@@ -123,7 +150,7 @@ export default async function FreelancersPage({
             </div>
             {selectedCategory && (
               <Link
-                href={buildFreelancersHref(searchParams, { category: null })}
+                href={buildFreelancersHref(normalizedSearchParams, { category: null })}
                 className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold text-slate hover:bg-card hover:text-text"
               >
                 <X className="h-3 w-3" />
@@ -134,7 +161,7 @@ export default async function FreelancersPage({
 
           <div className="flex flex-wrap gap-2">
             <Link
-              href={buildFreelancersHref(searchParams, { category: null })}
+              href={buildFreelancersHref(normalizedSearchParams, { category: null })}
               className={`rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
                 !selectedCategory
                   ? "border-navy bg-navy text-white"
@@ -144,18 +171,18 @@ export default async function FreelancersPage({
               전체
             </Link>
             {CATEGORIES.map((category) => {
-              const active = selectedCategory === category;
+              const active = selectedCategory === category.value;
               return (
                 <Link
-                  key={category}
-                  href={buildFreelancersHref(searchParams, { category })}
+                  key={category.value}
+                  href={buildFreelancersHref(normalizedSearchParams, { category: category.value })}
                   className={`rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
                     active
                       ? "border-navy bg-navy text-white"
                       : "border-line bg-card text-text hover:border-lavender hover:text-lavender"
                   }`}
                 >
-                  {category}
+                  {category.label}
                 </Link>
               );
             })}
@@ -166,7 +193,7 @@ export default async function FreelancersPage({
       {freelancers.length === 0 ? (
         <p className="text-muted-foreground text-center py-20">
           {selectedCategory
-            ? `${selectedCategory} 분야에 등록된 진행자가 없습니다.`
+            ? `${getCategoryLabel(selectedCategory)} 분야에 등록된 진행자가 없습니다.`
             : "등록된 진행자가 없습니다."}
         </p>
       ) : (

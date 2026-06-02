@@ -109,16 +109,14 @@ export function Header() {
     >
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-3 text-text">
-          <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-surface ring-1 ring-line">
-            <Image
-              src="/brand-icon.png"
-              alt="프리마이크"
-              width={36}
-              height={36}
-              className="h-full w-full object-cover"
-              priority
-            />
-          </span>
+          <Image
+            src="/brand-icon.png"
+            alt="프리마이크"
+            width={48}
+            height={48}
+            className="h-10 w-10 object-contain sm:h-11 sm:w-11"
+            priority
+          />
           <span className="text-[21px] font-extrabold tracking-[-0.03em]">
             프리마이크
           </span>
