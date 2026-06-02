@@ -43,8 +43,6 @@ const nextConfig = {
 
   // ── 실험적 최적화 ─────────────────────────────────────────
   experimental: {
-    // 사용하는 Tailwind 클래스만 포함 (CSS 번들 축소)
-    optimizeCss: true,
     // 패키지 import 최적화 (lucide-react 트리 쉐이킹)
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
