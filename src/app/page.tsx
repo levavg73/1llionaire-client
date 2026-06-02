@@ -10,7 +10,6 @@ import {
   Mic,
   PlayCircle,
   Shield,
-  Sparkles,
   Star,
 } from "lucide-react";
 
