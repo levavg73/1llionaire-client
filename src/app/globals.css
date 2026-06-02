@@ -1,54 +1,10 @@
 /*
- * Pretendard 폰트 최적화
+ * Font loading performance
  *
- * 변경 사항:
- * - 9가지 weight → 실제 사용하는 4가지만 (400, 600, 700, 800)
- * - jsDelivr CDN 유지, 나머지 weight 제거로 렌더 블로킹 최소화
- * - font-display: swap → 렌더 블로킹 방지
- *
- * 추가 최적화 (layout.tsx에서 preconnect 처리):
- *   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+ * The previous CDN-hosted Pretendard font files added several megabytes to the
+ * first page load. Use the platform Korean system font stack instead so the
+ * hero text renders immediately on mobile and Lighthouse payload stays lean.
  */
-
-@font-face {
-  font-family: "Pretendard";
-  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-display: swap;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Pretendard";
-  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-display: swap;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Pretendard";
-  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-SemiBold.woff2") format("woff2");
-  font-weight: 600;
-  font-display: swap;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Pretendard";
-  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-display: swap;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Pretendard";
-  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraBold.woff2") format("woff2");
-  font-weight: 800;
-  font-display: swap;
-  font-style: normal;
-}
 
 @tailwind base;
 @tailwind components;

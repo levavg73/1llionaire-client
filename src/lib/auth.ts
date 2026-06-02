@@ -1,5 +1,5 @@
-import type { User } from "@/types";
-import { authApi } from "./apis/auth";
+import { authApi } from "@/lib/api";
+import { User } from "@/types";
 
 export function getAuthUser(payload: unknown): User | null {
   if (!payload || typeof payload !== "object") return null;
@@ -17,7 +17,6 @@ export function getAuthUser(payload: unknown): User | null {
 
   return null;
 }
-
 
 export async function loadCurrentUser(): Promise<User | null> {
   try {

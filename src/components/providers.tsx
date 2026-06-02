@@ -1,19 +1,28 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import {
   createContext,
   useContext,
   useEffect,
   useState,
   useCallback,
+  ReactNode,
 } from "react";
-import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { loadCurrentUser } from "@/lib/auth";
-import type { User } from "@/types";
+import { User } from "@/types";
 
-// ─── Auth Context ─────────────────────────────────────────────
+const ReactQueryDevtools =
+  process.env.NODE_ENV === "development"
+    ? dynamic(
+        () =>
+          import("@tanstack/react-query-devtools").then(
+            (mod) => mod.ReactQueryDevtools
+          ),
+        { ssr: false }
+      )
+    : null;
 
 interface AuthState {
   user: User | null;
@@ -37,15 +46,12 @@ export const AuthContext = createContext<AuthState>({
 
 export const useAuth = () => useContext(AuthContext);
 
-// ─── Auth Provider ────────────────────────────────────────────
-
 function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isServerWaking, setIsServerWaking] = useState(false);
 
-
-  const handleOAuthSuccessRedirect = useCallback((currentUser: User | null) => {
+  const applyOAuthRedirect = useCallback((currentUser: User | null) => {
     if (
       !currentUser ||
       typeof window === "undefined" ||
@@ -73,10 +79,9 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    let wakeMessageTimer: ReturnType<typeof setTimeout> | null = null;
 
     const bootstrap = async () => {
-      wakeMessageTimer = setTimeout(() => {
+      const wakeTimer = window.setTimeout(() => {
         if (mounted) setIsServerWaking(true);
       }, 3000);
 
@@ -85,10 +90,10 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
         if (mounted) {
           setUser(currentUser);
-          handleOAuthSuccessRedirect(currentUser);
+          applyOAuthRedirect(currentUser);
         }
       } finally {
-        if (wakeMessageTimer) clearTimeout(wakeMessageTimer);
+        window.clearTimeout(wakeTimer);
 
         if (mounted) {
           setIsServerWaking(false);
@@ -106,10 +111,9 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       mounted = false;
-      if (wakeMessageTimer) clearTimeout(wakeMessageTimer);
       window.removeEventListener("auth:unauthorized", handleUnauthorized);
     };
-  }, [handleOAuthSuccessRedirect]);
+  }, [applyOAuthRedirect]);
 
   const setAuth = useCallback((newUser: User) => {
     setUser(newUser);
@@ -131,8 +135,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-
-// ─── Query Client ─────────────────────────────────────────────
 
 function makeQueryClient() {
   return new QueryClient({
@@ -156,16 +158,13 @@ function getQueryClient() {
   return browserQueryClient;
 }
 
-// ─── Providers ───────────────────────────────────────────────
-
 export function Providers({ children }: { children: ReactNode }) {
   const queryClient = getQueryClient();
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>{children}</AuthProvider>
-      {process.env.NODE_ENV === "development" && (
-        <ReactQueryDevtools initialIsOpen={false} />
-      )}
+      {ReactQueryDevtools ? <ReactQueryDevtools initialIsOpen={false} /> : null}
     </QueryClientProvider>
   );
 }

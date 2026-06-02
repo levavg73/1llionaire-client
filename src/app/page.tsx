@@ -4,14 +4,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Mic, Star, Shield, Clock, ChevronRight, PlayCircle } from "lucide-react";
 
-// ── 메타데이터 ────────────────────────────────────────────────
-// layout.tsx의 메타를 상속하되 페이지 전용 title만 override
 export const metadata: Metadata = {
   title: "프리마이크 | 전문 진행자 매칭 플랫폼",
-  description: "검증된 전문 MC·아나운서·쇼호스트를 행사에 연결합니다. 기업행사, 웨딩, 라이브커머스, 컨퍼런스 진행자 섭외 플랫폼.",
+  description:
+    "검증된 전문 MC·아나운서·쇼호스트를 행사에 연결합니다. 기업행사, 웨딩, 라이브커머스, 컨퍼런스 진행자 섭외 플랫폼.",
 };
-
-// ── 데이터 ────────────────────────────────────────────────────
 
 const FEATURES = [
   {
@@ -38,24 +35,11 @@ const HOW_IT_WORKS = [
   { step: "04", title: "예약 확정", desc: "견적 수락 후 예약이 확정됩니다" },
 ];
 
-// ── 컴포넌트 ─────────────────────────────────────────────────
-
 export default function HomePage() {
   return (
     <div className="animate-fade-in bg-clear text-text">
-
-      {/* ── Hero ─────────────────────────────────────────────
-       * 모바일: 최소 높이 480px, 텍스트 크기 축소
-       * 태블릿: 560px
-       * 데스크톱: 660px
-       *
-       * Lighthouse:
-       * - priority + fetchPriority="high" → LCP 이미지 즉시 로드
-       * - sizes 속성으로 적절한 이미지 크기 요청
-       * - aria-hidden 오버레이 div → 접근성
-       */}
       <section
-        className="relative min-h-[480px] overflow-hidden bg-clear sm:min-h-[560px] lg:min-h-[660px]"
+        className="relative isolate min-h-[calc(100svh-4rem)] overflow-hidden bg-[#070816] sm:min-h-[560px] sm:bg-clear lg:min-h-[660px]"
         aria-label="히어로 섹션"
       >
         <Image
@@ -64,32 +48,28 @@ export default function HomePage() {
           fill
           priority
           fetchPriority="high"
-          sizes="100vw"
-          className="object-cover object-center"
-          quality={85}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1440px"
+          className="object-cover object-[58%_center] sm:object-center"
+          quality={72}
         />
 
-        {/* 그라데이션 오버레이 */}
         <div
-          className="absolute inset-0 bg-gradient-to-r from-clear via-clear/95 to-clear/20 dark:from-[#080913] dark:via-[#080913]/92 dark:to-[#080913]/30"
+          className="absolute inset-0 bg-gradient-to-b from-[#070816]/35 via-[#070816]/40 to-[#070816]/90 sm:bg-gradient-to-r sm:from-clear sm:via-clear/95 sm:to-clear/20 dark:sm:from-[#080913] dark:sm:via-[#080913]/92 dark:sm:to-[#080913]/30"
           aria-hidden="true"
         />
         <div
-          className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(97,92,255,0.12),_transparent_36%),radial-gradient(circle_at_bottom_left,_rgba(46,55,138,0.14),_transparent_42%)]"
+          className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(97,92,255,0.16),_transparent_38%),radial-gradient(circle_at_bottom_left,_rgba(46,55,138,0.24),_transparent_44%)]"
           aria-hidden="true"
         />
 
-        {/* 히어로 콘텐츠 */}
-        <div className="container relative mx-auto flex min-h-[480px] max-w-7xl items-center px-4 py-12 sm:min-h-[560px] sm:py-16 lg:min-h-[660px] lg:py-20">
-          <div className="max-w-4xl">
-            {/* 배지 */}
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-lavender/20 bg-card/90 px-3 py-1.5 text-[13px] font-bold text-lavender shadow-sm backdrop-blur sm:mb-7 sm:px-4 sm:py-2 sm:text-[15px]">
+        <div className="container relative mx-auto flex min-h-[calc(100svh-4rem)] max-w-7xl items-end px-4 py-7 sm:min-h-[560px] sm:items-center sm:py-16 lg:min-h-[660px] lg:py-20">
+          <div className="max-w-[39rem] rounded-[28px] border border-white/30 bg-card/95 p-5 shadow-2xl shadow-black/25 backdrop-blur-md dark:border-white/10 dark:bg-[#0b0d1c]/88 sm:max-w-4xl sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-0 dark:sm:bg-transparent">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-lavender/20 bg-card/90 px-3 py-1.5 text-[13px] font-bold text-lavender shadow-sm backdrop-blur sm:mb-7 sm:px-4 sm:py-2 sm:text-[15px]">
               <Mic className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
               전문 진행자 매칭 플랫폼
             </div>
 
-            {/* 제목 — 모바일 28px / 태블릿 42px / 데스크톱 64px */}
-            <h1 className="mb-5 text-[28px] font-extrabold leading-[1.15] tracking-[-0.04em] text-text sm:mb-7 sm:text-[42px] md:text-[54px] lg:text-[64px] lg:leading-[1.1]">
+            <h1 className="mb-4 text-balance text-[31px] font-extrabold leading-[1.12] tracking-[-0.045em] text-text sm:mb-7 sm:text-[42px] md:text-[54px] lg:text-[64px] lg:leading-[1.08]">
               섭외 고민은 끝,
               <br />
               <span className="bg-gradient-to-r from-navy to-lavender bg-clip-text text-transparent">
@@ -99,24 +79,22 @@ export default function HomePage() {
               지금 바로 연결합니다
             </h1>
 
-            {/* 소개 — 모바일 15px / 데스크톱 21px */}
-            <p className="mb-7 max-w-2xl text-[15px] font-medium leading-[1.7] text-slate sm:mb-10 sm:text-[17px] md:text-[19px] lg:max-w-4xl lg:text-[21px] lg:leading-[1.75]">
+            <p className="mb-6 max-w-[34rem] text-pretty text-[15.5px] font-semibold leading-[1.72] text-slate sm:mb-10 sm:text-[17px] md:text-[19px] lg:max-w-4xl lg:text-[21px] lg:leading-[1.75]">
               기업행사, 웨딩, 라이브커머스, 컨퍼런스에 필요한
               <br className="hidden sm:block" />
-              전문 MC · 아나운서 · 쇼호스트를 빠르고 정확하게
+              전문 MC · 아나운서 · 쇼호스트를 빠르고 정확하게 연결합니다.
             </p>
 
-            {/* CTA 버튼 */}
-            <div className="flex flex-wrap gap-2 sm:gap-3">
-              <Link href="/signup">
-                <Button size="lg" variant="primaryCta" className="text-[15px] sm:text-base">
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-3">
+              <Link href="/signup" className="w-full sm:w-auto">
+                <Button size="lg" variant="primaryCta" className="w-full justify-center text-[15px] sm:w-auto sm:text-base">
                   진행자 섭외 요청하기
                   <ChevronRight className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </Link>
 
-              <Link href="/freelancers">
-                <Button size="lg" variant="secondaryCta" className="text-[15px] sm:text-base">
+              <Link href="/freelancers" className="w-full sm:w-auto">
+                <Button size="lg" variant="secondaryCta" className="w-full justify-center text-[15px] sm:w-auto sm:text-base">
                   <PlayCircle className="h-4 w-4" aria-hidden="true" />
                   진행자 둘러보기
                 </Button>
@@ -126,7 +104,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Features ──────────────────────────────────────── */}
       <section
         className="container mx-auto max-w-7xl px-4 py-12 sm:py-16 lg:py-20"
         aria-labelledby="features-heading"
@@ -163,7 +140,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── How it works ──────────────────────────────────── */}
       <section className="bg-surface py-12 sm:py-16 lg:py-20" aria-labelledby="how-heading">
         <div className="container mx-auto max-w-7xl px-4">
           <h2
@@ -191,7 +167,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── CTA ───────────────────────────────────────────── */}
       <section
         className="container mx-auto max-w-7xl px-4 py-12 text-center sm:py-16 lg:py-20"
         aria-labelledby="cta-heading"
@@ -220,13 +195,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Footer ────────────────────────────────────────── */}
       <footer className="border-t border-line bg-card py-6 sm:py-8" role="contentinfo">
         <div className="container mx-auto flex max-w-7xl items-center justify-center px-4 text-[13px] text-slate sm:text-[14px]">
           <p>© 2026 FreeMic. All rights reserved.</p>
         </div>
       </footer>
-
     </div>
   );
 }
