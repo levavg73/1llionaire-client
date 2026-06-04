@@ -7,12 +7,26 @@ const baseURL = rawBaseUrl.replace(/\/+$/, "");
 
 export type OAuthProvider = "kakao" | "google";
 
+function getOAuthRedirectOrigin(redirectOrigin?: string) {
+  if (redirectOrigin) return redirectOrigin;
+  if (typeof window !== "undefined") return window.location.origin;
+  return process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+}
+
 export const authApi = {
-  getOAuthStartUrl: (provider: OAuthProvider, userType: "customer" | "freelancer" = "customer", redirectOrigin?: string) => {
-    const origin = redirectOrigin || (typeof window !== "undefined" ? window.location.origin : process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000");
-    const params = new URLSearchParams({ user_type: userType, redirect_uri: origin });
+  getOAuthStartUrl: (provider: OAuthProvider, redirectOrigin?: string) => {
+    const params = new URLSearchParams({
+      redirect_uri: getOAuthRedirectOrigin(redirectOrigin),
+    });
+
     return `${baseURL}/api/auth/oauth/${provider}?${params.toString()}`;
   },
+
+  completeOAuthSignup: (data: {
+    name: string;
+    user_type: "customer" | "freelancer";
+  }) => http.post<BackendResponse<AuthSession>>("/api/auth/oauth/complete", data),
+
   signup: (data: {
     name: string;
     email: string;

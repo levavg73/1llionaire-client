@@ -83,7 +83,7 @@ function LoginContent() {
   const signupHref = next ? `/signup?next=${encodeURIComponent(next)}` : "/signup";
   const oauthError = searchParams.get("error");
   const startOAuth = (provider: "kakao" | "google") => {
-    window.location.href = `/oauth-role?provider=${provider}`;
+    window.location.href = authApi.getOAuthStartUrl(provider);
   };
 
   return (
@@ -177,10 +177,10 @@ function LoginContent() {
 
           <div className="grid w-full grid-cols-2 gap-2">
             <Button type="button" variant="outline" className="h-11" onClick={() => startOAuth("kakao")}>
-              카카오로 계속
+              카카오로 이용하기
             </Button>
             <Button type="button" variant="outline" className="h-11" onClick={() => startOAuth("google")}>
-              Google로 계속
+              구글로 이용하기
             </Button>
           </div>
 

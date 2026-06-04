@@ -114,7 +114,7 @@ function SignupContent() {
   const next = searchParams.get("next");
   const loginHref = next ? `/login?next=${encodeURIComponent(next)}` : "/login";
   const startOAuth = (provider: "kakao" | "google") => {
-    window.location.href = authApi.getOAuthStartUrl(provider, selectedRole);
+    window.location.href = authApi.getOAuthStartUrl(provider);
   };
 
   return (
@@ -261,10 +261,10 @@ function SignupContent() {
 
           <div className="grid w-full grid-cols-2 gap-2">
             <Button type="button" variant="outline" className="h-11" onClick={() => startOAuth("kakao")}>
-              카카오로 가입
+              카카오로 이용하기
             </Button>
             <Button type="button" variant="outline" className="h-11" onClick={() => startOAuth("google")}>
-              Google로 가입
+              구글로 이용하기
             </Button>
           </div>
 
