@@ -34,7 +34,14 @@ export type AuthUser = Pick<User, "id" | "name" | "email" | "user_type"> &
   Partial<
     Pick<
       User,
-      "phone" | "is_active" | "created_at" | "customer_profile" | "freelancer_profile"
+      | "phone"
+      | "provider"
+      | "has_password"
+      | "needs_password_setup"
+      | "is_active"
+      | "created_at"
+      | "customer_profile"
+      | "freelancer_profile"
     >
   >;
 

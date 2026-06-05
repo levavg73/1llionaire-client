@@ -55,25 +55,37 @@ const setPasswordSchema = z
 
 type SetPasswordValues = z.infer<typeof setPasswordSchema>;
 
-function SocialPasswordSection({ provider }: { provider: string }) {
+function InitialPasswordSection({ provider }: { provider?: string | null }) {
   const [done, setDone] = useState(false);
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<SetPasswordValues>({
+  const { refreshUser } = useAuth();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<SetPasswordValues>({
     resolver: zodResolver(setPasswordSchema),
   });
 
   const mutation = useMutation({
-    mutationFn: (data: SetPasswordValues) =>
-      authApi.setPassword(data.new_password),
-    onSuccess: () => { setDone(true); reset(); },
+    mutationFn: (data: SetPasswordValues) => authApi.setPassword(data.new_password),
+    onSuccess: async () => {
+      setDone(true);
+      reset();
+      await refreshUser();
+    },
   });
 
-  const providerLabel = provider === "kakao" ? "카카오" : "Google";
+  const providerLabel =
+    provider === "kakao" ? "카카오" : provider === "google" ? "Google" : "소셜";
 
   if (done) {
     return (
       <Card className="mb-6 border-emerald-200">
         <CardContent className="pt-5 pb-5">
-          <p className="text-sm text-emerald-700 font-medium">✅ 비밀번호가 설정되었습니다. 이제 이메일로도 로그인할 수 있습니다.</p>
+          <p className="text-sm text-emerald-700 font-medium">
+            ✅ 비밀번호가 설정되었습니다. 이제 이메일로도 로그인할 수 있습니다.
+          </p>
         </CardContent>
       </Card>
     );
@@ -87,13 +99,20 @@ function SocialPasswordSection({ provider }: { provider: string }) {
           <CardTitle className="text-base">비밀번호 설정</CardTitle>
         </div>
         <CardDescription>
-          {providerLabel} 계정으로 로그인 중입니다. 비밀번호를 설정하면 이메일로도 로그인할 수 있습니다.
+          {providerLabel} 계정으로 로그인 중입니다. 비밀번호는 지금 설정하지 않아도 되며,
+          설정하면 이메일 로그인과 계정 탈퇴 확인에 사용할 수 있습니다.
         </CardDescription>
       </CardHeader>
       <CardContent>
         {mutation.isError && (
-          <p role="alert" className="mb-4 text-sm text-destructive bg-destructive/5 border border-destructive/20 rounded-md px-3 py-2">
-            비밀번호 설정에 실패했습니다.
+          <p
+            role="alert"
+            className="mb-4 rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          >
+            {(mutation.error as ApiError)?.response?.data
+              ? ((mutation.error as ApiError).response!.data as { error: { message: string } })
+                  .error.message
+              : "비밀번호 설정에 실패했습니다."}
           </p>
         )}
         <form onSubmit={handleSubmit((v) => mutation.mutate(v))} noValidate className="space-y-4">
@@ -217,6 +236,10 @@ export default function SettingsPage() {
     setDeleteConfirmOpen(true);
   };
 
+  const needsInitialPassword =
+    user?.needs_password_setup === true ||
+    (Boolean(user?.provider) && user?.has_password === false);
+
   return (
     <ProtectedRoute>
       <div className="container mx-auto max-w-7xl px-4 py-8">
@@ -231,10 +254,10 @@ export default function SettingsPage() {
               <p className="text-muted-foreground text-sm mt-1">{user?.email}</p>
             </div>
 
-            {user?.provider ? (
-              <SocialPasswordSection provider={user.provider} />
+            {needsInitialPassword ? (
+              <InitialPasswordSection provider={user?.provider} />
             ) : (
-            <Card className="mb-6">
+              <Card className="mb-6">
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5 text-primary" />
@@ -283,7 +306,7 @@ export default function SettingsPage() {
                   </Button>
                 </form>
               </CardContent>
-            </Card>
+              </Card>
             )}
 
 

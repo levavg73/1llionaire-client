@@ -15,6 +15,7 @@ import { Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { ApiError } from "@/lib/api";
 import { authApi } from "@/lib/api";
+import { getDefaultPostAuthPath } from "@/lib/auth-redirects";
 import { getAuthUser } from "@/lib/auth";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -51,11 +52,6 @@ const ROLE_OPTIONS: RoleOption[] = [
 
 function isOAuthProvider(value: string | null): value is OAuthProvider {
   return value === "kakao" || value === "google";
-}
-
-function getDefaultPath(userType: string) {
-  if (userType === "admin") return "/admin";
-  return userType === "customer" ? "/customer/requests" : "/freelancer/profile";
 }
 
 function getApiErrorMessage(error: unknown) {
@@ -113,7 +109,7 @@ function OAuthRoleContent() {
       }
 
       setAuth(user);
-      router.replace(getDefaultPath(user.user_type));
+      router.replace(getDefaultPostAuthPath(user.user_type));
     } catch (error) {
       setServerError(getApiErrorMessage(error));
     } finally {

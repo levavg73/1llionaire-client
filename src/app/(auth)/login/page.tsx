@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import type { ApiError } from "@/lib/api";
 import { authApi } from "@/lib/api";
+import { getPostAuthRedirect } from "@/lib/auth-redirects";
 import { getAuthUser } from "@/lib/auth";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -29,11 +30,6 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
-
-function getSafeNext(value: string | null, fallback: string) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return fallback;
-  return value;
-}
 
 function LoginContent() {
   const router = useRouter();
@@ -62,14 +58,7 @@ function LoginContent() {
 
       setAuth(user);
 
-      const defaultRedirect =
-        user.user_type === "admin"
-          ? "/admin"
-          : user.user_type === "customer"
-            ? "/customer/requests"
-            : "/freelancer/profile";
-
-      router.push(getSafeNext(searchParams.get("next"), defaultRedirect));
+      router.replace(getPostAuthRedirect(searchParams.get("next"), user.user_type));
     } catch (err) {
       const apiErr = err as ApiError<{ error: { message: string } }>;
 

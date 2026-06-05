@@ -62,7 +62,7 @@ export const authApi = {
 
   // 소셜 로그인 사용자가 비밀번호를 처음 설정할 때
   setPassword: (new_password: string) =>
-    http.patch<BackendResponse<null>>("/api/users/me/set-password", { new_password }),
+    http.patch<BackendResponse<AuthUser>>("/api/users/me/set-password", { new_password }),
 
   changePassword: (data: { current_password: string; new_password: string }) =>
     http.patch<BackendResponse<null>>("/api/users/me/password", data),

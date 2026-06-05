@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import type { ApiError } from "@/lib/api";
 import { authApi } from "@/lib/api";
+import { getPostAuthRedirect } from "@/lib/auth-redirects";
 import { getAuthUser } from "@/lib/auth";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -51,11 +52,6 @@ const ROLE_OPTIONS = [
   { value: "freelancer", label: "프리랜서", desc: "진행자로 활동하고 싶어요" },
 ] as const;
 
-function getSafeNext(value: string | null, fallback: string) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return fallback;
-  return value;
-}
-
 function SignupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -96,10 +92,7 @@ function SignupContent() {
 
       setAuth(user);
 
-      const defaultRedirect =
-        user.user_type === "customer" ? "/customer/requests" : "/freelancer/profile";
-
-      router.push(getSafeNext(searchParams.get("next"), defaultRedirect));
+      router.replace(getPostAuthRedirect(searchParams.get("next"), user.user_type));
     } catch (err) {
       const apiErr = err as ApiError<{ error: { message: string } }>;
 

@@ -13,6 +13,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { loadCurrentUser } from "@/lib/auth";
+import { getDefaultPostAuthPath } from "@/lib/auth-redirects";
 import { User } from "@/types";
 
 const ReactQueryDevtools =
@@ -85,16 +86,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // setup=name: 신규 소셜 가입자 이름 설정 필요
-    const needsNameSetup = window.location.search.includes("setup=name");
-
-    const dashboardPath = needsNameSetup
-      ? "/oauth-name-setup"
-      : currentUser.user_type === "admin"
-        ? "/admin"
-        : currentUser.user_type === "customer"
-          ? "/customer/requests"
-          : "/freelancer/profile";
+    const dashboardPath = getDefaultPostAuthPath(currentUser.user_type);
 
     window.history.replaceState({}, "", window.location.pathname);
     window.location.replace(dashboardPath);
@@ -102,7 +94,10 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = useCallback(async () => {
     const currentUser = await loadCurrentUser();
+    sessionCheckedRef.current = true;
     setUser(currentUser);
+    setIsLoading(false);
+    setIsServerWaking(false);
     return currentUser;
   }, []);
 
@@ -169,11 +164,17 @@ function AuthProvider({ children }: { children: ReactNode }) {
   }, [applyOAuthRedirect, pathname]);
 
   const setAuth = useCallback((newUser: User) => {
+    sessionCheckedRef.current = true;
     setUser(newUser);
+    setIsLoading(false);
+    setIsServerWaking(false);
   }, []);
 
   const clearAuth = useCallback(() => {
+    sessionCheckedRef.current = false;
     setUser(null);
+    setIsLoading(false);
+    setIsServerWaking(false);
   }, []);
 
   const value: AuthState = {

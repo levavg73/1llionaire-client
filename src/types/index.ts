@@ -49,7 +49,9 @@ export interface User {
   email: string;
   user_type: UserType;
   phone?: string;
-  provider?: string | null;   // "kakao" | "google" | null
+  provider?: string | null;
+  has_password?: boolean;
+  needs_password_setup?: boolean;
   is_active: boolean;
   created_at: string;
   customer_profile?: CustomerProfile | null;
