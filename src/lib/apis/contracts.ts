@@ -1,5 +1,5 @@
 import type { BackendResponse, Contract } from "../lib/api-contracts";
-import http from "../lib/http";
+import http from "../http";
 
 const rawBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
 const baseURL = rawBaseUrl.replace(/\/+$/, "");

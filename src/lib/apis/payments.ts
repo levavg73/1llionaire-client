@@ -4,7 +4,7 @@ import type {
   PaymentDetail,
   PaymentPreparePayload,
 } from "../lib/api-contracts";
-import http from "../lib/http";
+import http from "../http";
 
 export const paymentApi = {
   prepare: (booking_id: string) =>

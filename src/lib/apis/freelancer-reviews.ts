@@ -4,7 +4,7 @@ import type {
   FreelancerReview,
   FreelancerReviewCreatePayload,
 } from "../lib/api-contracts";
-import http, { toQueryParams } from "../lib/http";
+import http, { toQueryParams } from "../http";
 
 export const freelancerReviewApi = {
   create: (data: FreelancerReviewCreatePayload) =>

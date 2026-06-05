@@ -5,7 +5,7 @@ import type {
   BookingDetail,
   Review,
 } from "../lib/api-contracts";
-import http, { toQueryParams } from "../lib/http";
+import http, { toQueryParams } from "../http";
 
 export const bookingApi = {
   createBooking: (data: unknown) =>

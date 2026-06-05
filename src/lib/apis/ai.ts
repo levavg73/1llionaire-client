@@ -1,5 +1,5 @@
 import type { BackendResponse, PricingAnalysisResult, PricingAnalysisRequest } from "../lib/api-contracts";
-import http from "../lib/http";
+import http from "../http";
 
 export const aiApi = {
   analyzePricing: (data: PricingAnalysisRequest) =>

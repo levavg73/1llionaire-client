@@ -5,7 +5,7 @@ import type {
   ChatRoom,
   ChatRoomDetail,
 } from "../lib/api-contracts";
-import http, { toQueryParams } from "../lib/http";
+import http, { toQueryParams } from "../http";
 
 export const chatApi = {
   getRooms: (params?: Record<string, unknown>) =>

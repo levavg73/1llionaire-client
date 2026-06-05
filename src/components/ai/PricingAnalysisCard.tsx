@@ -5,7 +5,7 @@ import { aiApi } from "@/lib/api";
 import type { ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EventRequest, PricingAnalysis } from "@/types";
+import { EventRequest, PricingAnalysis, PricingMarketData } from "@/types";
 import { formatPrice } from "@/lib/utils";
 import { Sparkles } from "lucide-react";
 
@@ -19,6 +19,11 @@ function getDurationHours(start?: string, end?: string) {
   if (endMin <= startMin) endMin += 24 * 60;
   return Number(((endMin - startMin) / 60).toFixed(1));
 }
+
+type PricingAnalysisPayload = {
+  analysis: PricingAnalysis;
+  market_data?: PricingMarketData | null;
+};
 
 function ConfidenceLabel({ value }: { value: PricingAnalysis["confidence"] }) {
   const map = {
@@ -45,7 +50,7 @@ export function PricingAnalysisCard({ request }: { request: EventRequest }) {
       }),
   });
 
-  const result = mutation.data?.data?.data;
+  const result = mutation.data?.data?.data as PricingAnalysisPayload | undefined;
   const analysis = result?.analysis;
   const errorMessage =
     (mutation.error as ApiError<{ error: { message: string } }> | null)?.response?.data?.error?.message ||

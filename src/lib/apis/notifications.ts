@@ -3,7 +3,7 @@ import type {
   BackendResponse,
   NotificationItem,
 } from "../lib/api-contracts";
-import http, { toQueryParams } from "../lib/http";
+import http, { toQueryParams } from "../http";
 
 export const notificationApi = {
   getNotifications: (params?: Record<string, unknown>) =>
