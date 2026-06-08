@@ -48,7 +48,7 @@ export default function AdminDashboardPage() {
     <div className="animate-fade-in">
       <div className="mb-8">
         <h1 className="text-2xl font-bold">대시보드</h1>
-        <p className="text-muted-foreground text-sm mt-1">프리마이크 운영 현황</p>
+        <p className="text-muted-foreground text-sm mt-1">VOIT 운영 현황</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

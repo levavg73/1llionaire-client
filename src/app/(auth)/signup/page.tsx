@@ -117,7 +117,7 @@ function SignupContent() {
           회원가입
         </CardTitle>
         <CardDescription className="text-[16px] text-slate">
-          프리마이크에 가입하고 시작하세요
+          VOIT에 가입하고 시작하세요
         </CardDescription>
       </CardHeader>
 

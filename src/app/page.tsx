@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "프리마이크 | 전문 진행자 매칭 플랫폼",
+  title: "VOIT | 전문 진행자 매칭 플랫폼",
   description:
     "검증된 전문 MC·아나운서·쇼호스트를 행사에 연결합니다. 기업행사, 웨딩, 라이브커머스, 컨퍼런스 진행자 섭외 플랫폼.",
 };
@@ -117,7 +117,7 @@ export default function HomePage() {
                 <span className="lg:mt-1 lg:inline-block">후기와 검증 기준으로 추천합니다.</span>
               </p>
 
-              <ul className="mt-5 flex flex-wrap gap-2 sm:mt-7 sm:gap-3" aria-label="프리마이크 신뢰 요소">
+              <ul className="mt-5 flex flex-wrap gap-2 sm:mt-7 sm:gap-3" aria-label="VOIT 신뢰 요소">
                 {TRUST_POINTS.map(({ icon: Icon, label }) => (
                   <li
                     key={label}
@@ -152,7 +152,7 @@ export default function HomePage() {
       <section className="container mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20" aria-labelledby="features-heading">
         <div className="mx-auto mb-8 max-w-2xl text-center sm:mb-12">
           <h2 id="features-heading" className="text-[30px] font-extrabold tracking-[-0.04em] text-text sm:text-[40px] lg:text-[46px]">
-            왜 프리마이크인가요?
+            왜 VOIT인가요?
           </h2>
           <p className="mt-3 text-[16px] font-medium leading-relaxed text-slate sm:text-[19px]">
             검증, 예상단가, AI 후보 추천을 한 번에 확인할 수 있습니다
@@ -231,7 +231,7 @@ export default function HomePage() {
 
       <footer className="border-t border-line bg-card py-6 sm:py-8" role="contentinfo">
         <div className="container mx-auto flex max-w-7xl items-center justify-center px-4 text-[13px] text-slate sm:text-[14px]">
-          <p>© 2026 FreeMic. All rights reserved.</p>
+          <p>© 2026 VOIT. All rights reserved.</p>
         </div>
       </footer>
     </div>

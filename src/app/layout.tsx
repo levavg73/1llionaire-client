@@ -8,8 +8,8 @@ const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://1llionaire-client.v
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "프리마이크 | 전문 진행자 매칭 플랫폼",
-    template: "%s | 프리마이크",
+    default: "VOIT | 전문 진행자 매칭 플랫폼",
+    template: "%s | VOIT",
   },
   description:
     "행사, 기업 콘텐츠, 웨딩, 라이브커머스, 컨퍼런스에 필요한 전문 아나운서·MC·쇼호스트를 연결하는 매칭 플랫폼",
@@ -21,8 +21,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    siteName: "프리마이크",
-    title: "프리마이크 | 전문 진행자 매칭 플랫폼",
+    siteName: "VOIT",
+    title: "VOIT | 전문 진행자 매칭 플랫폼",
     description: "검증된 전문 MC·아나운서를 행사에 연결합니다.",
     url: "/",
   },

@@ -82,7 +82,7 @@ function LoginContent() {
           로그인
         </CardTitle>
         <CardDescription className="text-[16px] text-slate">
-          프리마이크에 오신 것을 환영합니다
+          VOIT에 오신 것을 환영합니다
         </CardDescription>
       </CardHeader>
 
