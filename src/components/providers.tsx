@@ -55,7 +55,6 @@ const PUBLIC_AUTH_BOOTSTRAP_PATHS = new Set([
   "/signup",
   "/forgot-password",
   "/oauth-role",
-  "/reviews",
 ]);
 
 function shouldBootstrapAuth(pathname: string | null): boolean {
