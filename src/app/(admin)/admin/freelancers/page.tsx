@@ -1,380 +1,204 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
-import { publicApi } from "@/lib/api";
-import { Badge } from "@/components/ui/badge";
-import { Star, MapPin, SlidersHorizontal, X, MessageSquareText, ChevronLeft, ChevronRight } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { adminApi } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
+import type { AdminFreelancerRow } from "@/lib/api-contracts";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FreelancerStatusBadge } from "@/components/common/StatusBadge";
+import { LoadingState, EmptyState, ErrorState } from "@/components/common/States";
+import { Pagination } from "@/components/common/Pagination";
 import { formatPrice } from "@/lib/utils";
-import { FreelancerProfile, Pagination } from "@/types";
+import type { FreelancerStatus } from "@/types";
 
-export const metadata: Metadata = {
-  title: "진행자 찾기",
-  description: "검증된 전문 MC·아나운서·쇼호스트 목록을 확인하세요.",
-};
+const STATUS_TABS: { value: FreelancerStatus | ""; label: string }[] = [
+  { value: "", label: "전체" },
+  { value: "pending_review", label: "검수 대기" },
+  { value: "approved", label: "승인 완료" },
+  { value: "rejected", label: "반려" },
+  { value: "draft", label: "작성 중" },
+  { value: "hidden", label: "비공개" },
+  { value: "suspended", label: "정지" },
+];
 
-const PAGE_SIZE = 20;
+function getFreelancerName(freelancer: AdminFreelancerRow) {
+  return freelancer.display_name || freelancer.user?.name || "이름 없음";
+}
 
-const CATEGORIES = [
-  { value: "기업행사 MC", label: "기업행사MC" },
-  { value: "웨딩 사회자", label: "웨딩 사회자" },
-  { value: "쇼호스트", label: "쇼호스트" },
-  { value: "컨퍼런스 MC", label: "컨퍼런스 MC" },
-  { value: "라이브커머스", label: "라이브커머스" },
-  { value: "아나운서", label: "아나운서" },
-] as const;
-
-const SORT_OPTIONS = [
-  { value: "latest", label: "최신순" },
-  { value: "popular", label: "인기순" },
-  { value: "reviews", label: "후기순" },
-] as const;
-
-type SearchParams = Record<string, string | string[] | undefined>;
-type SortValue = (typeof SORT_OPTIONS)[number]["value"];
-
-async function getFreelancers(searchParams: SearchParams) {
-  try {
-    const res = await publicApi.getFreelancers(searchParams);
-    return res.data?.data ?? { items: [], pagination: null };
-  } catch {
-    return { items: [], pagination: null };
+function getPriceRange(freelancer: AdminFreelancerRow) {
+  if (!freelancer.base_price_min && !freelancer.base_price_max) return "가격 미입력";
+  if (freelancer.base_price_min && freelancer.base_price_max) {
+    return `${formatPrice(freelancer.base_price_min)} ~ ${formatPrice(freelancer.base_price_max)}`;
   }
+  if (freelancer.base_price_min) return `${formatPrice(freelancer.base_price_min)}~`;
+  return `~${formatPrice(freelancer.base_price_max ?? 0)}`;
 }
 
-function getSingleParam(searchParams: SearchParams, key: string) {
-  const value = searchParams[key];
-  return Array.isArray(value) ? value[0] : value;
-}
+export default function AdminFreelancersPage() {
+  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<FreelancerStatus | "">("");
+  const queryClient = useQueryClient();
 
-function getSort(searchParams: SearchParams): SortValue {
-  const sort = getSingleParam(searchParams, "sort");
-  return SORT_OPTIONS.some((option) => option.value === sort) ? (sort as SortValue) : "popular";
-}
-
-function getPage(searchParams: SearchParams) {
-  const page = Number(getSingleParam(searchParams, "page") ?? "1");
-  return Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
-}
-
-function getCategory(searchParams: SearchParams) {
-  const category = getSingleParam(searchParams, "category");
-
-  if (!category || category === "all" || category === "전체") return undefined;
-
-  return CATEGORIES.some((item) => item.value === category) ? category : undefined;
-}
-
-function normalizeFreelancerSearchParams(searchParams: SearchParams) {
-  const normalized: SearchParams = { ...searchParams };
-  const category = getCategory(searchParams);
-
-  if (category) {
-    normalized.category = category;
-  } else {
-    delete normalized.category;
-  }
-
-  normalized.sort = getSort(searchParams);
-  delete normalized.limit;
-  return normalized;
-}
-
-function getCategoryLabel(category?: string) {
-  return CATEGORIES.find((item) => item.value === category)?.label ?? category;
-}
-
-function buildFreelancersHref(searchParams: SearchParams, overrides: Record<string, string | null>) {
-  const params = new URLSearchParams();
-
-  Object.entries(searchParams).forEach(([key, value]) => {
-    if (Array.isArray(value)) {
-      value.forEach((item) => item && params.append(key, item));
-      return;
-    }
-
-    if (value) params.set(key, value);
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: queryKeys.adminFreelancersList(page, statusFilter),
+    queryFn: () =>
+      adminApi.getFreelancers({
+        page,
+        limit: 15,
+        ...(statusFilter && { status: statusFilter }),
+      }),
   });
 
-  Object.entries(overrides).forEach(([key, value]) => {
-    if (!value) {
-      params.delete(key);
-      return;
-    }
+  const items: AdminFreelancerRow[] = data?.data?.data?.items ?? [];
+  const pagination = data?.data?.data?.pagination;
 
-    params.set(key, value);
-  });
-
-  const queryString = params.toString();
-  return queryString ? `/freelancers?${queryString}` : "/freelancers";
-}
-
-function getPageNumbers(currentPage: number, totalPages: number) {
-  if (totalPages <= 7) {
-    return Array.from({ length: totalPages }, (_, index) => index + 1);
-  }
-
-  const pages = new Set([1, totalPages, currentPage - 1, currentPage, currentPage + 1]);
-  return Array.from(pages)
-    .filter((page) => page >= 1 && page <= totalPages)
-    .sort((a, b) => a - b);
-}
-
-function PaginationNav({
-  pagination,
-  searchParams,
-}: {
-  pagination: Pagination | null;
-  searchParams: SearchParams;
-}) {
-  if (!pagination || pagination.totalPages <= 1) return null;
-
-  const currentPage = pagination.page;
-  const totalPages = pagination.totalPages;
-  const pageNumbers = getPageNumbers(currentPage, totalPages);
-  const showEllipsisBefore = pageNumbers[0] > 1;
-  const showEllipsisAfter = pageNumbers[pageNumbers.length - 1] < totalPages;
-
-  return (
-    <nav className="mt-8 flex flex-col items-center gap-3" aria-label="진행자 목록 페이지">
-      <p className="text-xs text-muted-foreground">
-        총 {pagination.total.toLocaleString()}명 중 {(currentPage - 1) * pagination.limit + 1}–
-        {Math.min(currentPage * pagination.limit, pagination.total).toLocaleString()}명 표시
-      </p>
-
-      <div className="flex items-center justify-center gap-1 rounded-2xl border border-line bg-card p-1 shadow-sm">
-        <Link
-          href={
-            currentPage > 1
-              ? buildFreelancersHref(searchParams, { page: String(currentPage - 1) })
-              : buildFreelancersHref(searchParams, { page: String(currentPage) })
-          }
-          aria-disabled={currentPage <= 1}
-          className={`inline-flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold transition-colors ${
-            currentPage <= 1
-              ? "pointer-events-none text-muted-foreground/40"
-              : "text-slate hover:bg-surface hover:text-text"
-          }`}
-        >
-          <ChevronLeft className="h-4 w-4" />
-          <span className="sr-only">이전 페이지</span>
-        </Link>
-
-        {showEllipsisBefore && <span className="px-2 text-sm text-muted-foreground">…</span>}
-
-        {pageNumbers.map((page) => {
-          const active = page === currentPage;
-          return (
-            <Link
-              key={page}
-              href={buildFreelancersHref(searchParams, { page: String(page) })}
-              aria-current={active ? "page" : undefined}
-              className={`inline-flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-sm font-bold transition-colors ${
-                active
-                  ? "bg-navy text-white shadow-sm"
-                  : "text-slate hover:bg-surface hover:text-text"
-              }`}
-            >
-              {page}
-            </Link>
-          );
-        })}
-
-        {showEllipsisAfter && <span className="px-2 text-sm text-muted-foreground">…</span>}
-
-        <Link
-          href={
-            currentPage < totalPages
-              ? buildFreelancersHref(searchParams, { page: String(currentPage + 1) })
-              : buildFreelancersHref(searchParams, { page: String(currentPage) })
-          }
-          aria-disabled={currentPage >= totalPages}
-          className={`inline-flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold transition-colors ${
-            currentPage >= totalPages
-              ? "pointer-events-none text-muted-foreground/40"
-              : "text-slate hover:bg-surface hover:text-text"
-          }`}
-        >
-          <ChevronRight className="h-4 w-4" />
-          <span className="sr-only">다음 페이지</span>
-        </Link>
-      </div>
-    </nav>
-  );
-}
-
-export default async function FreelancersPage({
-  searchParams = {},
-}: {
-  searchParams?: SearchParams;
-}) {
-  const normalizedSearchParams = normalizeFreelancerSearchParams(searchParams);
-  const currentPage = getPage(searchParams);
-  const listSearchParams: SearchParams = {
-    ...normalizedSearchParams,
-    page: String(currentPage),
-    limit: String(PAGE_SIZE),
+  const invalidateFreelancers = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.adminFreelancers });
+    queryClient.invalidateQueries({ queryKey: queryKeys.publicFreelancers });
+    queryClient.invalidateQueries({ queryKey: queryKeys.adminDashboard });
   };
-  const { items, pagination } = await getFreelancers(listSearchParams);
-  const freelancers: FreelancerProfile[] = items;
-  const selectedCategory = getCategory(searchParams);
-  const selectedSort = getSort(searchParams);
+
+  const approveMutation = useMutation({
+    mutationFn: (id: string) => adminApi.approveFreelancer(id),
+    onSuccess: invalidateFreelancers,
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      adminApi.rejectFreelancer(id, reason),
+    onSuccess: invalidateFreelancers,
+  });
+
+  const isMutating = approveMutation.isPending || rejectMutation.isPending;
+
+  const handleReject = (id: string) => {
+    const reason = window.prompt("반려 사유를 입력해 주세요.");
+    if (!reason?.trim()) return;
+    rejectMutation.mutate({ id, reason: reason.trim() });
+  };
 
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-10">
-      <div className="mb-8 flex flex-col gap-5">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">진행자 찾기</h1>
-            <p className="text-muted-foreground mt-2">
-              검증된 전문 MC·아나운서·쇼호스트를 만나보세요
-            </p>
-          </div>
-
-          <div className="flex rounded-2xl border border-line bg-card p-1 shadow-sm">
-            {SORT_OPTIONS.map((option) => {
-              const active = selectedSort === option.value;
-              return (
-                <Link
-                  key={option.value}
-                  href={buildFreelancersHref(normalizedSearchParams, { sort: option.value, page: null })}
-                  className={`rounded-xl px-4 py-2 text-sm font-bold transition-colors ${
-                    active
-                      ? "bg-navy text-white shadow-sm"
-                      : "text-slate hover:bg-surface hover:text-text"
-                  }`}
-                >
-                  {option.label}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="rounded-2xl border bg-surface/60 p-4">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-sm font-bold text-text">
-              <SlidersHorizontal className="h-4 w-4 text-lavender" />
-              분야 필터
-            </div>
-            {selectedCategory && (
-              <Link
-                href={buildFreelancersHref(normalizedSearchParams, { category: null, page: null })}
-                className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold text-slate hover:bg-card hover:text-text"
-              >
-                <X className="h-3 w-3" />
-                초기화
-              </Link>
-            )}
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href={buildFreelancersHref(normalizedSearchParams, { category: null, page: null })}
-              className={`rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
-                !selectedCategory
-                  ? "border-navy bg-navy text-white"
-                  : "border-line bg-card text-text hover:border-lavender hover:text-lavender"
-              }`}
-            >
-              전체
-            </Link>
-            {CATEGORIES.map((category) => {
-              const active = selectedCategory === category.value;
-              return (
-                <Link
-                  key={category.value}
-                  href={buildFreelancersHref(normalizedSearchParams, { category: category.value, page: null })}
-                  className={`rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
-                    active
-                      ? "border-navy bg-navy text-white"
-                      : "border-line bg-card text-text hover:border-lavender hover:text-lavender"
-                  }`}
-                >
-                  {category.label}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+    <div className="animate-fade-in">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">프리랜서 관리</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          등록 신청, 승인 완료, 반려 상태의 진행자 계정을 모두 확인합니다.
+        </p>
       </div>
 
-      {freelancers.length === 0 ? (
-        <p className="text-muted-foreground text-center py-20">
-          {selectedCategory
-            ? `${getCategoryLabel(selectedCategory)} 분야에 등록된 진행자가 없습니다.`
-            : "등록된 진행자가 없습니다."}
-        </p>
-      ) : (
-        <>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {freelancers.map((f) => (
-              <Link key={f.id} href={`/freelancers/${f.id}`}>
-                <article className="rounded-xl border bg-card hover:shadow-lg transition-all duration-200 overflow-hidden group">
-                  <div className="relative h-48 bg-muted overflow-hidden">
-                    {f.profile_image_url ? (
-                      <Image
-                        src={f.profile_image_url}
-                        alt={f.display_name || "진행자 프로필"}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-navy/10 to-navy/5">
-                        <span className="text-5xl font-bold text-navy/20">
-                          {(f.display_name || "?")[0]}
-                        </span>
+      <div className="mb-4 flex flex-wrap gap-2">
+        {STATUS_TABS.map(({ value, label }) => (
+          <button
+            key={value || "all"}
+            type="button"
+            onClick={() => {
+              setStatusFilter(value);
+              setPage(1);
+            }}
+            className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+              statusFilter === value
+                ? "bg-navy text-white"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {isLoading && <LoadingState />}
+      {isError && <ErrorState onRetry={() => refetch()} />}
+      {!isLoading && !isError && items.length === 0 && (
+        <EmptyState title="프리랜서 계정이 없습니다" />
+      )}
+
+      <div className="space-y-3">
+        {items.map((freelancer) => {
+          const name = getFreelancerName(freelancer);
+          const imageUrl = freelancer.profile_image_url || undefined;
+
+          return (
+            <Card key={freelancer.id}>
+              <CardContent className="p-5">
+                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                  <div className="flex min-w-0 gap-4">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-muted">
+                      {imageUrl ? (
+                        <Image src={imageUrl} alt={name} fill className="object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xl font-bold text-muted-foreground">
+                          {name[0] ?? "?"}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-w-0">
+                      <div className="mb-1 flex flex-wrap items-center gap-2">
+                        <FreelancerStatusBadge status={freelancer.status} />
+                        {freelancer.region && (
+                          <span className="text-xs text-muted-foreground">{freelancer.region}</span>
+                        )}
+                        {typeof freelancer.career_years === "number" && (
+                          <span className="text-xs text-muted-foreground">
+                            경력 {freelancer.career_years}년
+                          </span>
+                        )}
                       </div>
+
+                      <h2 className="font-semibold">{name}</h2>
+                      <p className="mt-0.5 text-sm text-muted-foreground">
+                        {freelancer.user?.email ?? "이메일 없음"}
+                        {freelancer.user?.phone ? ` · ${freelancer.user.phone}` : ""}
+                      </p>
+                      {freelancer.headline && (
+                        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                          {freelancer.headline}
+                        </p>
+                      )}
+
+                      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                        <span>{getPriceRange(freelancer)}</span>
+                        <span>후기 {freelancer.review_count ?? 0}개</span>
+                        {freelancer.avg_rating && <span>평점 {freelancer.avg_rating.toFixed(1)}</span>}
+                        {freelancer.categories?.length > 0 && (
+                          <span>{freelancer.categories.slice(0, 3).join(", ")}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex shrink-0 gap-2 md:justify-end">
+                    {freelancer.status !== "approved" && (
+                      <Button
+                        size="sm"
+                        onClick={() => approveMutation.mutate(freelancer.id)}
+                        disabled={isMutating}
+                      >
+                        승인
+                      </Button>
+                    )}
+                    {freelancer.status !== "rejected" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleReject(freelancer.id)}
+                        disabled={isMutating}
+                      >
+                        반려
+                      </Button>
                     )}
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
-                  <div className="p-4">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h2 className="font-semibold truncate">{f.display_name}</h2>
-                      {f.avg_rating && (
-                        <span className="flex items-center gap-0.5 text-sm font-medium shrink-0">
-                          <Star className="h-3.5 w-3.5 fill-gold text-gold" />
-                          {f.avg_rating.toFixed(1)}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{f.headline}</p>
-
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {f.categories.slice(0, 2).map((c) => (
-                        <Badge key={c} variant="secondary" className="text-xs">{c}</Badge>
-                      ))}
-                      {f.styles.slice(0, 2).map((style) => (
-                        <Badge key={style} variant="outline" className="text-xs">{style}</Badge>
-                      ))}
-                      {f.languages.slice(0, 1).map((language) => (
-                        <Badge key={language} variant="outline" className="text-xs">{language}</Badge>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />{f.region}
-                      </span>
-                      {f.base_price_min && (
-                        <span className="font-medium text-foreground">
-                          {formatPrice(f.base_price_min)}~
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
-                      <MessageSquareText className="h-3 w-3" />
-                      <span>후기 {f.review_count ?? 0}개</span>
-                    </div>
-                  </div>
-                </article>
-              </Link>
-            ))}
-          </div>
-
-          <PaginationNav pagination={pagination} searchParams={normalizedSearchParams} />
-        </>
-      )}
+      {pagination && <Pagination pagination={pagination} onPageChange={setPage} />}
     </div>
   );
 }

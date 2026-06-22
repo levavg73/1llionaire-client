@@ -1,12 +1,18 @@
-const rawApiProxyTarget =
-  process.env.API_PROXY_TARGET ||
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  (process.env.NODE_ENV === "production" ? "" : "http://localhost:4000");
+function normalizeApiProxyTarget(value) {
+  return (value || "")
+    .trim()
+    .replace(/\/+$/, "")
+    .replace(/\/api$/i, "");
+}
 
-const apiProxyTarget = rawApiProxyTarget.replace(/\/+$/, "");
+const apiProxyTarget = normalizeApiProxyTarget(
+  process.env.API_PROXY_TARGET ||
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    (process.env.NODE_ENV === "production" ? "" : "http://localhost:4000")
+);
 
 if (process.env.NODE_ENV === "production" && !apiProxyTarget) {
-  throw new Error("API_PROXY_TARGET is required in production.");
+  throw new Error("API_PROXY_TARGET or NEXT_PUBLIC_API_BASE_URL is required in production.");
 }
 
 let apiHostname;

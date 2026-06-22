@@ -1,6 +1,3 @@
-const rawDirectBaseUrl = process.env.NEXT_PUBLIC_API_DIRECT_BASE_URL || "";
-const directBaseURL = rawDirectBaseUrl.replace(/\/+$/, "");
-
 const DEFAULT_TIMEOUT_MS = 75000;
 
 type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
@@ -68,9 +65,39 @@ function isQueryValue(value: unknown): value is QueryValue {
   );
 }
 
+function normalizeApiBaseUrl(value?: string | null) {
+  if (!value) return "";
+
+  return value
+    .trim()
+    .replace(/\/+$/, "")
+    .replace(/\/api$/i, "");
+}
+
 function getSameOriginBaseUrl() {
   if (typeof window !== "undefined") return window.location.origin;
-  return process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    return process.env.NEXT_PUBLIC_BASE_URL;
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  return "http://localhost:3000";
+}
+
+function getServerApiBaseUrl() {
+  return normalizeApiBaseUrl(
+    process.env.NEXT_PUBLIC_API_DIRECT_BASE_URL ||
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      process.env.API_PROXY_TARGET
+  );
+}
+
+function getBrowserDirectBaseUrl() {
+  return normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_DIRECT_BASE_URL);
 }
 
 function buildUrl(path: string, params?: QueryParams) {
@@ -81,6 +108,8 @@ function buildUrl(path: string, params?: QueryParams) {
   }
 
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const directBaseURL =
+    typeof window === "undefined" ? getServerApiBaseUrl() : getBrowserDirectBaseUrl();
   const base = directBaseURL || getSameOriginBaseUrl();
   const url = new URL(normalizedPath, base);
 
@@ -113,6 +142,7 @@ async function refreshAccessToken(): Promise<boolean> {
     refreshPromise = fetch(buildUrl("/api/auth/refresh"), {
       method: "POST",
       credentials: "include",
+      cache: "no-store",
     })
       .then((res) => res.ok)
       .catch(() => false)
@@ -189,6 +219,7 @@ async function request<T = unknown>(config: RequestConfig): Promise<HttpResponse
       headers,
       body,
       credentials: "include",
+      cache: "no-store",
       signal: controller.signal,
     });
 

@@ -7,6 +7,9 @@ import { Star, MapPin, SlidersHorizontal, X, MessageSquareText, ChevronLeft, Che
 import { formatPrice } from "@/lib/utils";
 import { FreelancerProfile, Pagination } from "@/types";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "진행자 찾기",
   description: "검증된 전문 MC·아나운서·쇼호스트 목록을 확인하세요.",
@@ -35,9 +38,16 @@ type SortValue = (typeof SORT_OPTIONS)[number]["value"];
 async function getFreelancers(searchParams: SearchParams) {
   try {
     const res = await publicApi.getFreelancers(searchParams);
-    return res.data?.data ?? { items: [], pagination: null };
-  } catch {
-    return { items: [], pagination: null };
+    return {
+      ...(res.data?.data ?? { items: [], pagination: null }),
+      error: null as string | null,
+    };
+  } catch (error) {
+    return {
+      items: [],
+      pagination: null,
+      error: error instanceof Error ? error.message : "진행자 목록을 불러오지 못했습니다.",
+    };
   }
 }
 
@@ -214,7 +224,7 @@ export default async function FreelancersPage({
     page: String(currentPage),
     limit: String(PAGE_SIZE),
   };
-  const { items, pagination } = await getFreelancers(listSearchParams);
+  const { items, pagination, error } = await getFreelancers(listSearchParams);
   const freelancers: FreelancerProfile[] = items;
   const selectedCategory = getCategory(searchParams);
   const selectedSort = getSort(searchParams);
@@ -298,7 +308,12 @@ export default async function FreelancersPage({
         </div>
       </div>
 
-      {freelancers.length === 0 ? (
+      {error ? (
+        <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-center">
+          <p className="font-bold text-destructive">진행자 목록 API 연결에 실패했습니다.</p>
+          <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+        </div>
+      ) : freelancers.length === 0 ? (
         <p className="text-muted-foreground text-center py-20">
           {selectedCategory
             ? `${getCategoryLabel(selectedCategory)} 분야에 등록된 진행자가 없습니다.`
