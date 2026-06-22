@@ -22,6 +22,7 @@ import type {
   RequestStatus,
   NotificationItem,
   Review,
+  SavedFreelancer,
   ReviewStatus,
   SettlementStatus,
   User,
@@ -280,6 +281,7 @@ export type {
   RequestStatus,
   NotificationItem,
   Review,
+  SavedFreelancer,
   ReviewStatus,
   SettlementStatus,
 };

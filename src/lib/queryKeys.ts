@@ -13,6 +13,8 @@ export const queryKeys = {
   recommendations: (id: string) => ["customer", "requests", id, "recommendations"] as const,
   customerBookings: ["customer", "bookings"] as const,
   customerBookingsPage: (page: number) => ["customer", "bookings", { page }] as const,
+  savedFreelancers: ["customer", "saved-freelancers"] as const,
+  savedFreelancersPage: (page: number) => ["customer", "saved-freelancers", { page }] as const,
   myReviews: ["customer", "reviews", "me"] as const,
   notifications: ["notifications"] as const,
   notificationUnreadCount: ["notifications", "unread-count"] as const,

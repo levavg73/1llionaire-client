@@ -127,6 +127,14 @@ export interface Portfolio {
   is_public: boolean;
 }
 
+export interface SavedFreelancer {
+  id: string;
+  customer_id: string;
+  freelancer_id: string;
+  created_at: string;
+  freelancer: FreelancerProfile;
+}
+
 // ─── 고객 요청서 ─────────────────────────────────────────────
 
 export type RequestStatus =

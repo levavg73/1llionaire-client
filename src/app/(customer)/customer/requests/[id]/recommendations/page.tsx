@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { bookingApi, customerApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { Button } from "@/components/ui/button";
+import { SaveFreelancerButton } from "@/components/freelancer/SaveFreelancerButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoadingState, EmptyState, ErrorState } from "@/components/common/States";
 import { ArrowLeft, Star, MapPin, ExternalLink } from "lucide-react";
@@ -117,15 +118,16 @@ export default function RecommendationsPage({ params }: { params: { id: string }
                     {rec.recommendation_reason || `${f.display_name}님은 ${f.categories.slice(0,2).join(", ")} 분야에서 ${f.career_years ? `${f.career_years}년 경력의` : ""} 검증된 진행자입니다. ${f.avg_rating ? `평점 ${f.avg_rating.toFixed(1)}점으로 ` : ""}요청하신 조건에 적합한 후보로 선정되었습니다.`}
                   </p>
                 </div>
-                <div className="px-5 pb-5 flex gap-2">
-                  <Link href={`/freelancers/${f.id}`} className="flex-1">
+                <div className="px-5 pb-5 grid gap-2 sm:grid-cols-3">
+                  <Link href={`/freelancers/${f.id}`} className="min-w-0">
                     <Button variant="outline" className="w-full gap-2" size="sm">
                       <ExternalLink className="h-3.5 w-3.5" />
                       프로필 상세보기
                     </Button>
                   </Link>
+                  <SaveFreelancerButton freelancerId={f.id} size="sm" className="w-full" />
                   <Button
-                    className="flex-1 bg-navy text-white hover:bg-navy-light"
+                    className="w-full bg-navy text-white hover:bg-navy-light"
                     size="sm"
                     disabled={bookingMutation.isPending}
                     onClick={() => bookingMutation.mutate(f.id)}

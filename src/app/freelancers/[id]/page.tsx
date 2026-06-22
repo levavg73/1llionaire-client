@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { publicApi } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
+import { SaveFreelancerButton } from "@/components/freelancer/SaveFreelancerButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -90,6 +91,8 @@ export default async function FreelancerDetailPage({
       <Button asChild variant="outline" className="w-full">
         <Link href={reviewsHref}>⭐ 후기 확인하기 ({f.review_count}개)</Link>
       </Button>
+
+      <SaveFreelancerButton freelancerId={f.id} className="w-full" />
 
       <Button asChild className="w-full bg-navy text-white hover:bg-navy-light">
         <Link href={requestHref}>

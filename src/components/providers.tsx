@@ -65,8 +65,6 @@ function shouldBootstrapAuth(pathname: string | null): boolean {
 
   if (!pathname) return true;
   if (PUBLIC_AUTH_BOOTSTRAP_PATHS.has(pathname)) return false;
-  if (pathname === "/freelancers" || pathname.startsWith("/freelancers/")) return false;
-
   return true;
 }
 

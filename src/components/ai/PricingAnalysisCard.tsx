@@ -1,7 +1,8 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { aiApi } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 import type { ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,6 +74,8 @@ function normalizePricingPayload(payload?: PricingAnalysisPayload): PricingAnaly
 }
 
 export function PricingAnalysisCard({ request }: { request: EventRequest }) {
+  const queryClient = useQueryClient();
+
   const mutation = useMutation({
     mutationFn: () =>
       aiApi.analyzePricing({
@@ -91,9 +94,37 @@ export function PricingAnalysisCard({ request }: { request: EventRequest }) {
   const result = normalizePricingPayload(mutation.data?.data?.data);
   const analysis = result?.analysis;
   const lineItemsTotal = analysis?.line_items.reduce((sum, item) => sum + item.estimated_price, 0) ?? 0;
+
+  const applyBudgetMutation = useMutation({
+    mutationFn: () => {
+      if (!analysis) {
+        throw new Error("반영할 AI 단가 분석 결과가 없습니다.");
+      }
+
+      const recommendedMin = Math.max(0, Math.floor(analysis.recommended_min || analysis.recommended_center));
+      const recommendedMax = Math.max(
+        recommendedMin,
+        Math.floor(analysis.recommended_max || analysis.recommended_center || recommendedMin)
+      );
+
+      return aiApi.applyRequestBudget(request.id, {
+        budget_min: recommendedMin,
+        budget_max: recommendedMax,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.customerRequest(request.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.customerRequests });
+    },
+  });
+
   const errorMessage =
     (mutation.error as ApiError<{ error: { message: string } }> | null)?.response?.data?.error?.message ||
     "AI 단가 분석을 불러오지 못했습니다.";
+  const applyErrorMessage =
+    (applyBudgetMutation.error as ApiError<{ error: { message: string } }> | null)?.response?.data?.error?.message ||
+    (applyBudgetMutation.error as Error | null)?.message ||
+    "추천 예산 반영에 실패했습니다.";
 
   return (
     <Card className="border-lavender/30 bg-lavender-light/30">
@@ -199,15 +230,38 @@ export function PricingAnalysisCard({ request }: { request: EventRequest }) {
               </div>
             )}
 
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => mutation.mutate()}
-              disabled={mutation.isPending}
-            >
-              다시 분석하기
-            </Button>
+            {applyBudgetMutation.isError && (
+              <p className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-destructive">
+                {applyErrorMessage}
+              </p>
+            )}
+
+            {applyBudgetMutation.isSuccess && (
+              <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-700">
+                추천 단가가 요청서 예산 범위에 반영되었습니다.
+              </p>
+            )}
+
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button
+                type="button"
+                variant="accent"
+                size="sm"
+                onClick={() => applyBudgetMutation.mutate()}
+                disabled={applyBudgetMutation.isPending || mutation.isPending}
+              >
+                {applyBudgetMutation.isPending ? "반영 중..." : "추천 예산 반영"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => mutation.mutate()}
+                disabled={mutation.isPending || applyBudgetMutation.isPending}
+              >
+                다시 분석하기
+              </Button>
+            </div>
           </div>
         )}
       </CardContent>

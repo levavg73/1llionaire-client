@@ -18,6 +18,7 @@ import {
   BarChart3,
   Settings,
   BrainCircuit,
+  Bookmark,
 } from "lucide-react";
 
 interface NavItem {
@@ -63,6 +64,7 @@ export function CustomerNav() {
       items={[
         { href: "/customer/requests", label: "내 요청서", icon: <FileText className="h-4 w-4" /> },
         { href: "/customer/bookings", label: "내 예약", icon: <Calendar className="h-4 w-4" /> },
+        { href: "/customer/saved-freelancers", label: "저장한 진행자", icon: <Bookmark className="h-4 w-4" /> },
         { href: "/customer/chats", label: "상담", icon: <MessageSquare className="h-4 w-4" /> },
         { href: "/settings", label: "계정 설정", icon: <Settings className="h-4 w-4" /> },
       ]}

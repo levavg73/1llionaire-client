@@ -3,6 +3,7 @@ import type {
   BackendResponse,
   EventRequest,
   Recommendation,
+  SavedFreelancer,
 } from "../api-contracts";
 import http, { toQueryParams } from "../http";
 
@@ -28,4 +29,17 @@ export const customerApi = {
     http.get<BackendResponse<Recommendation[]>>(
       `/api/customer/requests/${id}/recommendations`
     ),
+
+  getSavedFreelancers: (params?: Record<string, unknown>) =>
+    http.get<BackendListResponse<SavedFreelancer>>("/api/customer/saved-freelancers", {
+      params: toQueryParams(params),
+    }),
+
+  saveFreelancer: (freelancerId: string) =>
+    http.post<BackendResponse<SavedFreelancer>>("/api/customer/saved-freelancers", {
+      freelancer_id: freelancerId,
+    }),
+
+  unsaveFreelancer: (freelancerId: string) =>
+    http.delete<BackendResponse<null>>(`/api/customer/saved-freelancers/${freelancerId}`),
 };
