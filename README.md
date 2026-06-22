@@ -51,9 +51,13 @@ pnpm build
 
 ## Environment Variables
 
-Create `.env.local` from `.env.example` and configure the API server URL.
+Create `.env.local` from `.env.example` and configure the API proxy target.
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
+API_PROXY_TARGET=http://localhost:4000
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
 ```
+
+In production, keep browser API calls same-origin through `/api/*`. Do not set
+`NEXT_PUBLIC_API_DIRECT_BASE_URL` unless you intentionally want to bypass the
+proxy for debugging.

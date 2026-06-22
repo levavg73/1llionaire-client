@@ -34,6 +34,7 @@ export function SaveFreelancerButton({
     queryKey: queryKeys.savedFreelancers,
     queryFn: () => customerApi.getSavedFreelancers({ limit: 100 }),
     enabled,
+    staleTime: 5 * 60 * 1000,
   });
 
   const savedItems = data?.data?.data?.items ?? [];
@@ -89,7 +90,7 @@ export function SaveFreelancerButton({
       aria-pressed={isSaved}
     >
       <Bookmark className={cn("h-4 w-4", isSaved && "fill-gold text-gold")} />
-      {showLabel && (mutation.isPending ? "처리 중..." : isSaved ? "저장됨" : "저장하기")}
+      {showLabel && (mutation.isPending ? "처리 중..." : mutation.isError ? "다시 시도" : isSaved ? "저장됨" : "저장하기")}
     </Button>
   );
 }

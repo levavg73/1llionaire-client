@@ -1,4 +1,4 @@
-const DEFAULT_TIMEOUT_MS = 75000;
+const DEFAULT_TIMEOUT_MS = 30000;
 
 type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
@@ -97,10 +97,11 @@ function getServerApiBaseUrl() {
 }
 
 function getBrowserDirectBaseUrl() {
-  return normalizeApiBaseUrl(
-    process.env.NEXT_PUBLIC_API_DIRECT_BASE_URL ||
-      process.env.NEXT_PUBLIC_API_BASE_URL
-  );
+  // Browser requests should stay on the frontend origin and pass through the
+  // Next.js /api rewrite. This keeps auth cookies first-party in Lighthouse
+  // and in modern browsers. Set NEXT_PUBLIC_API_DIRECT_BASE_URL only for a
+  // deliberate local/debug bypass.
+  return normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_DIRECT_BASE_URL);
 }
 
 function buildUrl(path: string, params?: QueryParams) {

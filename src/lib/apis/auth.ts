@@ -13,10 +13,7 @@ function normalizeApiBaseUrl(value?: string | null) {
     .replace(/\/api$/i, "");
 }
 
-const directBaseURL = normalizeApiBaseUrl(
-  process.env.NEXT_PUBLIC_API_DIRECT_BASE_URL ||
-    process.env.NEXT_PUBLIC_API_BASE_URL
-);
+const directBaseURL = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_DIRECT_BASE_URL);
 
 function getOAuthRedirectOrigin(redirectOrigin?: string) {
   if (redirectOrigin) return redirectOrigin;

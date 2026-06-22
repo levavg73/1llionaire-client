@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { ApiError } from "@/lib/http";
 import { bookingApi, customerApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { Button } from "@/components/ui/button";
@@ -14,10 +16,44 @@ import { ArrowLeft, Star, MapPin, ExternalLink } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { Recommendation } from "@/types";
 
+function getApiErrorMessage(error: unknown) {
+  const fallback = "예약 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  const apiError = error as ApiError<{ error?: { message?: string } }>;
+  return apiError?.response?.data?.error?.message || fallback;
+}
+
+function isRecommendationBookable(status: Recommendation["status"]) {
+  return status === "sent" || status === "viewed";
+}
+
+function getBookingButtonLabel(status: Recommendation["status"], isCurrentPending: boolean) {
+  if (isCurrentPending) return "요청 중...";
+
+  switch (status) {
+    case "consultation_requested":
+      return "상담 요청됨";
+    case "selected":
+      return "선택 완료";
+    case "rejected":
+      return "선택 불가";
+    case "draft":
+      return "검수 대기";
+    default:
+      return "이 진행자로 진행하기";
+  }
+}
+
 export default function RecommendationsPage({ params }: { params: { id: string } }) {
   const { id } = params;
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [pendingFreelancerId, setPendingFreelancerId] = useState<string | null>(null);
+  const [bookingErrorMessage, setBookingErrorMessage] = useState<string | null>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: queryKeys.recommendations(id),
@@ -29,6 +65,10 @@ export default function RecommendationsPage({ params }: { params: { id: string }
   const bookingMutation = useMutation({
     mutationFn: (freelancerId: string) =>
       bookingApi.createBooking({ request_id: id, freelancer_id: freelancerId }),
+    onMutate: (freelancerId) => {
+      setPendingFreelancerId(freelancerId);
+      setBookingErrorMessage(null);
+    },
     onSuccess: (res) => {
       const booking = res.data.data;
       queryClient.invalidateQueries({ queryKey: queryKeys.customerBookings });
@@ -38,6 +78,12 @@ export default function RecommendationsPage({ params }: { params: { id: string }
       queryClient.invalidateQueries({ queryKey: queryKeys.adminBookings });
       queryClient.invalidateQueries({ queryKey: queryKeys.adminDashboard });
       router.push(booking.chat_room ? `/customer/chats/${booking.chat_room.id}` : "/customer/bookings");
+    },
+    onError: (error) => {
+      setBookingErrorMessage(getApiErrorMessage(error));
+    },
+    onSettled: () => {
+      setPendingFreelancerId(null);
     },
   });
 
@@ -59,9 +105,9 @@ export default function RecommendationsPage({ params }: { params: { id: string }
         <EmptyState title="아직 공개된 추천 후보가 없습니다" description="관리자가 요청 조건, 포트폴리오, 후기 데이터를 검수한 뒤 후보를 공개합니다." />
       )}
 
-      {bookingMutation.isError && (
+      {bookingErrorMessage && (
         <p role="alert" className="text-sm text-destructive bg-destructive/5 border border-destructive/20 rounded-md px-3 py-2 mb-4">
-          예약 요청에 실패했습니다. 이미 진행 중인 요청이 있거나 예약 가능한 후보가 아닐 수 있습니다.
+          {bookingErrorMessage}
         </p>
       )}
 
@@ -127,12 +173,15 @@ export default function RecommendationsPage({ params }: { params: { id: string }
                   </Link>
                   <SaveFreelancerButton freelancerId={f.id} size="sm" className="w-full" />
                   <Button
-                    className="w-full bg-navy text-white hover:bg-navy-light"
+                    className="w-full bg-navy text-white hover:bg-navy-light disabled:opacity-60"
                     size="sm"
-                    disabled={bookingMutation.isPending}
-                    onClick={() => bookingMutation.mutate(f.id)}
+                    disabled={bookingMutation.isPending || !isRecommendationBookable(rec.status)}
+                    onClick={() => {
+                      if (!isRecommendationBookable(rec.status)) return;
+                      bookingMutation.mutate(f.id);
+                    }}
                   >
-                    {bookingMutation.isPending ? "요청 중..." : "이 진행자로 진행하기"}
+                    {getBookingButtonLabel(rec.status, pendingFreelancerId === f.id && bookingMutation.isPending)}
                   </Button>
                 </div>
               </CardContent>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { customerApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,8 @@ export default function CustomerRequestsPage() {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: queryKeys.customerRequestsPage(page),
     queryFn: () => customerApi.getRequests({ page, limit: 10 }),
+    placeholderData: keepPreviousData,
+    staleTime: 2 * 60 * 1000,
   });
 
   const result = data?.data;
@@ -27,11 +29,11 @@ export default function CustomerRequestsPage() {
   const pagination = result?.data?.pagination;
 
   return (
-    <div className="animate-fade-in">
+    <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">내 요청서</h1>
-          <p className="text-muted-foreground text-sm mt-1">섭외 요청서를 작성하고 현황을 확인하세요</p>
+          <h1 className="text-4xl font-extrabold tracking-[-0.04em] sm:text-5xl">내 요청서 관리</h1>
+          <p className="mt-2 text-sm text-muted-foreground">섭외 요청서를 작성하고 현황을 확인하세요</p>
         </div>
         <Link href="/customer/requests/new">
           <Button className="gap-2 bg-navy text-white hover:bg-navy-light">
@@ -62,7 +64,7 @@ export default function CustomerRequestsPage() {
                         <RequestStatusBadge status={req.status} />
                         <span className="text-xs text-muted-foreground">{formatDate(req.event_date)}</span>
                       </div>
-                      <h2 className="font-semibold truncate">{req.event_title}</h2>
+                      <h2 className="truncate text-base font-semibold">{req.event_title}</h2>
                       <p className="text-sm text-muted-foreground mt-0.5">
                         {req.event_type} · {req.region}
                       </p>

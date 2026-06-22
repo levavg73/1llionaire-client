@@ -1,7 +1,7 @@
 import type { BackendResponse, Contract } from "../api-contracts";
 import http from "../http";
 
-const rawBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
+const rawBaseUrl = process.env.NEXT_PUBLIC_API_DIRECT_BASE_URL || "";
 const baseURL = rawBaseUrl.replace(/\/+$/, "");
 
 export const contractApi = {

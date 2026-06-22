@@ -10,6 +10,12 @@ import { LoadingState } from "@/components/common/States";
 interface ProtectedRouteProps {
   children: ReactNode;
   allowedRoles?: UserType[];
+  /**
+   * Render the protected page shell while the cookie session check is in flight.
+   * Data APIs still enforce authorization server-side, but this prevents
+   * authenticated dashboards from delaying their LCP behind /api/auth/me.
+   */
+  renderWhileLoading?: boolean;
 }
 
 function getCurrentPath() {
@@ -17,7 +23,7 @@ function getCurrentPath() {
   return `${window.location.pathname}${window.location.search}`;
 }
 
-export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, allowedRoles, renderWhileLoading = false }: ProtectedRouteProps) {
   const { user, isLoading, isServerWaking } = useAuth();
   const router = useRouter();
 
@@ -35,7 +41,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     }
   }, [user, isLoading, allowedRoles, router]);
 
-  if (isLoading) {
+  if (isLoading && !renderWhileLoading) {
     return (
       <LoadingState
         message={
@@ -45,6 +51,10 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
         }
       />
     );
+  }
+
+  if (isLoading && renderWhileLoading) {
+    return <>{children}</>;
   }
   if (!user) return null;
   if (allowedRoles && !allowedRoles.includes(user.user_type)) return null;
