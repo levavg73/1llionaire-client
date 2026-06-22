@@ -280,7 +280,7 @@ export default function AdminAiPage() {
             {analysisMutation.isError && (
               <p role="alert" className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">
                 {(analysisMutation.error as ApiError<{ error: { message: string } }>)
-                  ?.response?.data?.error?.message || "분석 중 오류가 발생했습니다. ANTHROPIC_API_KEY 환경변수를 확인해 주세요."}
+                  ?.response?.data?.error?.message || "분석 중 오류가 발생했습니다. OPENAI_API_KEY 환경변수를 확인해 주세요."}
               </p>
             )}
 
