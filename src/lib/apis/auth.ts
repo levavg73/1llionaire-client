@@ -2,8 +2,8 @@ import type { User } from "@/types";
 import type { AuthSession, AuthUser, BackendResponse } from "../api-contracts";
 import http from "../http";
 
-const rawBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
-const baseURL = rawBaseUrl.replace(/\/+$/, "");
+const rawDirectBaseUrl = process.env.NEXT_PUBLIC_API_DIRECT_BASE_URL || "";
+const directBaseURL = rawDirectBaseUrl.replace(/\/+$/, "");
 
 export type OAuthProvider = "kakao" | "google";
 
@@ -13,13 +13,18 @@ function getOAuthRedirectOrigin(redirectOrigin?: string) {
   return process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 }
 
+function buildAuthUrl(path: string) {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return directBaseURL ? `${directBaseURL}${normalizedPath}` : normalizedPath;
+}
+
 export const authApi = {
   getOAuthStartUrl: (provider: OAuthProvider, redirectOrigin?: string) => {
     const params = new URLSearchParams({
       redirect_uri: getOAuthRedirectOrigin(redirectOrigin),
     });
 
-    return `${baseURL}/api/auth/oauth/${provider}?${params.toString()}`;
+    return `${buildAuthUrl(`/api/auth/oauth/${provider}`)}?${params.toString()}`;
   },
 
   completeOAuthSignup: (data: {
@@ -60,7 +65,6 @@ export const authApi = {
     manager_name?: string;
   }) => http.patch<BackendResponse<{ id: string }>>("/api/users/me/customer-profile", data),
 
-  // 소셜 로그인 사용자가 비밀번호를 처음 설정할 때
   setPassword: (new_password: string) =>
     http.patch<BackendResponse<AuthUser>>("/api/users/me/set-password", { new_password }),
 

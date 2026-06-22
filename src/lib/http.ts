@@ -1,5 +1,5 @@
-const rawBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
-const baseURL = rawBaseUrl.replace(/\/+$/, "");
+const rawDirectBaseUrl = process.env.NEXT_PUBLIC_API_DIRECT_BASE_URL || "";
+const directBaseURL = rawDirectBaseUrl.replace(/\/+$/, "");
 
 const DEFAULT_TIMEOUT_MS = 75000;
 
@@ -13,6 +13,7 @@ interface RequestConfig {
   url: string;
   params?: QueryParams;
   data?: unknown;
+  _retried?: boolean;
 }
 
 export interface HttpResponse<T = unknown> {
@@ -67,6 +68,11 @@ function isQueryValue(value: unknown): value is QueryValue {
   );
 }
 
+function getSameOriginBaseUrl() {
+  if (typeof window !== "undefined") return window.location.origin;
+  return process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+}
+
 function buildUrl(path: string, params?: QueryParams) {
   if (/^(https?:)?\/\//i.test(path)) {
     throw new ApiError("Absolute URLs are not allowed for API requests.", {
@@ -75,7 +81,8 @@ function buildUrl(path: string, params?: QueryParams) {
   }
 
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  const url = new URL(`${baseURL}${normalizedPath}`);
+  const base = directBaseURL || getSameOriginBaseUrl();
+  const url = new URL(normalizedPath, base);
 
   Object.entries(params ?? {}).forEach(([key, value]) => {
     if (Array.isArray(value)) {
@@ -91,6 +98,10 @@ function buildUrl(path: string, params?: QueryParams) {
       url.searchParams.set(key, String(value));
     }
   });
+
+  if (!directBaseURL && typeof window !== "undefined") {
+    return `${url.pathname}${url.search}`;
+  }
 
   return url.toString();
 }
@@ -122,7 +133,7 @@ function shouldTryRefresh(config: RequestConfig, status: number): boolean {
     config.url.includes("/api/auth/logout") ||
     config.url.includes("/api/auth/refresh");
 
-  return !authRefreshExcluded && !(config as RequestConfig & { _retried?: boolean })._retried;
+  return !authRefreshExcluded && !config._retried;
 }
 
 async function parseResponseBody(response: Response) {
@@ -196,7 +207,7 @@ async function request<T = unknown>(config: RequestConfig): Promise<HttpResponse
         const refreshed = await refreshAccessToken();
 
         if (refreshed) {
-          return request<T>({ ...config, _retried: true } as RequestConfig);
+          return request<T>({ ...config, _retried: true });
         }
 
         window.dispatchEvent(new Event("auth:unauthorized"));
@@ -236,7 +247,6 @@ const http = {
   patch: <T = unknown>(url: string, data?: unknown) =>
     request<T>({ method: "PATCH", url, data }),
 
-  // body가 있는 DELETE도 지원 (회원 탈퇴 등)
   delete: <T = unknown>(url: string, data?: unknown) =>
     request<T>({ method: "DELETE", url, data }),
 };

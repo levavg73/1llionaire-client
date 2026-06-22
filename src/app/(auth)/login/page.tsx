@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -34,8 +34,16 @@ type FormValues = z.infer<typeof schema>;
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setAuth, refreshUser } = useAuth();
+  const { user, isLoading, setAuth, refreshUser } = useAuth();
   const [serverError, setServerError] = useState("");
+
+  useEffect(() => {
+    if (isLoading || !user) return;
+
+    router.replace(
+      getPostAuthRedirect(searchParams.get("next"), user.user_type)
+    );
+  }, [isLoading, user, router, searchParams]);
 
   const {
     register,
