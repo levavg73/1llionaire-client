@@ -50,7 +50,6 @@ export const AuthContext = createContext<AuthState>({
 export const useAuth = () => useContext(AuthContext);
 
 const PUBLIC_AUTH_BOOTSTRAP_PATHS = new Set([
-  "/",
   "/login",
   "/signup",
   "/forgot-password",

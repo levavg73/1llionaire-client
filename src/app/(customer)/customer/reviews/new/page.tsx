@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ApiError } from "@/lib/api";
-import { freelancerReviewApi } from "@/lib/api";
+import { bookingApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,18 +16,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star } from "lucide-react";
 
 const SCORE_FIELDS = [
-  { name: "professionalism_score" as const, label: "요청 명확성" },
-  { name: "communication_score" as const, label: "소통" },
-  { name: "payment_promptness_score" as const, label: "결제·정산 신뢰도" },
-  { name: "respect_score" as const, label: "예의·존중" },
+  { name: "punctuality_score" as const, label: "시간 준수" },
+  { name: "voice_delivery_score" as const, label: "발성·전달력" },
+  { name: "event_understanding_score" as const, label: "행사 이해도" },
+  { name: "atmosphere_score" as const, label: "분위기 조율" },
+  { name: "script_score" as const, label: "대본 소화력" },
+  { name: "response_score" as const, label: "돌발상황 대응" },
+  { name: "communication_score" as const, label: "사전 소통" },
 ];
 
 const schema = z.object({
-  professionalism_score: z.number().int().min(1).max(5),
+  punctuality_score: z.number().int().min(1).max(5),
+  voice_delivery_score: z.number().int().min(1).max(5),
+  event_understanding_score: z.number().int().min(1).max(5),
+  atmosphere_score: z.number().int().min(1).max(5),
+  script_score: z.number().int().min(1).max(5),
+  response_score: z.number().int().min(1).max(5),
   communication_score: z.number().int().min(1).max(5),
-  payment_promptness_score: z.number().int().min(1).max(5),
-  respect_score: z.number().int().min(1).max(5),
-  would_work_again: z.boolean(),
+  rehire_intent: z.boolean(),
   comment: z.string().trim().max(2000).optional(),
 });
 
@@ -55,7 +61,7 @@ function StarRating({ value, onChange }: { value: number; onChange: (value: numb
   );
 }
 
-function NewFreelancerReviewContent() {
+function NewCustomerReviewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -70,30 +76,33 @@ function NewFreelancerReviewContent() {
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      professionalism_score: 5,
+      punctuality_score: 5,
+      voice_delivery_score: 5,
+      event_understanding_score: 5,
+      atmosphere_score: 5,
+      script_score: 5,
+      response_score: 5,
       communication_score: 5,
-      payment_promptness_score: 5,
-      respect_score: 5,
-      would_work_again: true,
+      rehire_intent: true,
     },
   });
 
   const mutation = useMutation({
     mutationFn: (values: FormValues) =>
-      freelancerReviewApi.create({ ...values, booking_id: bookingId }),
+      bookingApi.createReview({ ...values, booking_id: bookingId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.freelancerClientReviews });
-      queryClient.invalidateQueries({ queryKey: queryKeys.freelancerBookings });
-      router.push("/freelancer/reviews");
+      queryClient.invalidateQueries({ queryKey: queryKeys.myReviews });
+      queryClient.invalidateQueries({ queryKey: queryKeys.customerBookings });
+      router.push("/customer/bookings");
     },
   });
 
   return (
     <div className="animate-fade-in max-w-lg">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">의뢰인 후기 작성</h1>
+        <h1 className="text-2xl font-bold">진행자 후기 작성</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          완료된 예약에 대해 의뢰인과의 협업 경험을 기록하세요.
+          완료된 예약에 대해 진행자의 현장 진행 경험을 평가해 주세요.
         </p>
       </div>
 
@@ -137,15 +146,15 @@ function NewFreelancerReviewContent() {
         <Card className="mb-4">
           <CardContent className="space-y-4 pt-6">
             <label className="flex cursor-pointer items-center gap-2">
-              <input type="checkbox" {...register("would_work_again")} className="rounded" />
-              <span className="text-sm font-medium">이 의뢰인과 다시 함께하고 싶어요</span>
+              <input type="checkbox" {...register("rehire_intent")} className="rounded" />
+              <span className="text-sm font-medium">이 진행자를 다시 섭외하고 싶어요</span>
             </label>
             <div className="space-y-1.5">
               <Label htmlFor="comment">상세 후기 (선택)</Label>
               <Textarea
                 id="comment"
                 rows={4}
-                placeholder="요청사항 명확성, 소통, 정산 과정, 현장 매너 등을 자유롭게 남겨주세요"
+                placeholder="행사 이해도, 발성, 분위기 조율, 돌발상황 대응 등을 자유롭게 남겨주세요"
                 {...register("comment")}
               />
               {errors.comment && (
@@ -168,10 +177,10 @@ function NewFreelancerReviewContent() {
   );
 }
 
-export default function NewFreelancerReviewPage() {
+export default function NewCustomerReviewPage() {
   return (
     <Suspense fallback={<div className="max-w-lg">로딩 중...</div>}>
-      <NewFreelancerReviewContent />
+      <NewCustomerReviewContent />
     </Suspense>
   );
 }

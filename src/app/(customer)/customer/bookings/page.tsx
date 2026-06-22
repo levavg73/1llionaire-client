@@ -146,7 +146,7 @@ export default function CustomerBookingsPage() {
                   )}
 
                   {booking.booking_status === "completed" && (
-                    <Link href={`/reviews/new?bookingId=${booking.id}`}>
+                    <Link href={`/customer/reviews/new?bookingId=${booking.id}`}>
                       <Button size="sm" variant="outline" className="text-xs">
                         후기 작성
                       </Button>

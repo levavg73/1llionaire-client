@@ -97,7 +97,10 @@ function getServerApiBaseUrl() {
 }
 
 function getBrowserDirectBaseUrl() {
-  return normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_DIRECT_BASE_URL);
+  return normalizeApiBaseUrl(
+    process.env.NEXT_PUBLIC_API_DIRECT_BASE_URL ||
+      process.env.NEXT_PUBLIC_API_BASE_URL
+  );
 }
 
 function buildUrl(path: string, params?: QueryParams) {

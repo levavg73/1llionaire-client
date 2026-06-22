@@ -2,10 +2,21 @@ import type { User } from "@/types";
 import type { AuthSession, AuthUser, BackendResponse } from "../api-contracts";
 import http from "../http";
 
-const rawDirectBaseUrl = process.env.NEXT_PUBLIC_API_DIRECT_BASE_URL || "";
-const directBaseURL = rawDirectBaseUrl.replace(/\/+$/, "");
-
 export type OAuthProvider = "kakao" | "google";
+
+function normalizeApiBaseUrl(value?: string | null) {
+  if (!value) return "";
+
+  return value
+    .trim()
+    .replace(/\/+$/, "")
+    .replace(/\/api$/i, "");
+}
+
+const directBaseURL = normalizeApiBaseUrl(
+  process.env.NEXT_PUBLIC_API_DIRECT_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_BASE_URL
+);
 
 function getOAuthRedirectOrigin(redirectOrigin?: string) {
   if (redirectOrigin) return redirectOrigin;
@@ -46,14 +57,11 @@ export const authApi = {
   requestPasswordReset: (data: { email: string }) =>
     http.post<BackendResponse<null>>("/api/auth/password-reset/request", data),
 
-  refresh: () =>
-    http.post<BackendResponse<AuthSession>>("/api/auth/refresh"),
+  refresh: () => http.post<BackendResponse<AuthSession>>("/api/auth/refresh"),
 
-  logout: () =>
-    http.post<BackendResponse<null>>("/api/auth/logout"),
+  logout: () => http.post<BackendResponse<null>>("/api/auth/logout"),
 
-  me: () =>
-    http.get<BackendResponse<User>>("/api/auth/me"),
+  me: () => http.get<BackendResponse<User>>("/api/auth/me"),
 
   updateMe: (data: { name?: string; phone?: string }) =>
     http.patch<BackendResponse<AuthUser>>("/api/users/me", data),
