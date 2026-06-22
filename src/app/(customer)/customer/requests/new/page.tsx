@@ -15,8 +15,36 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
+
+const FREELANCER_TYPE_OPTIONS = [
+  "아나운서",
+  "기업행사 MC",
+  "컨퍼런스 MC",
+  "웨딩 사회자",
+  "쇼호스트",
+  "라이브커머스",
+  "콘텐츠 진행자",
+  "시상식 MC",
+] as const;
+
+const STYLE_OPTIONS = [
+  "정중한",
+  "전문적인",
+  "활기찬",
+  "친근한",
+  "차분한",
+  "유머러스한",
+  "고급스러운",
+  "신뢰감 있는",
+] as const;
+
+const nonEmptyStringArray = (message: string) =>
+  z
+    .array(z.string().trim().min(1, "빈 값은 추가할 수 없습니다.").max(50, "각 항목은 50자 이하로 입력해 주세요."))
+    .min(1, message)
+    .max(20, "20개 이하로 선택해 주세요.");
 
 const schema = z
   .object({
@@ -32,6 +60,8 @@ const schema = z
     venue: optionalTrimmedString(120, "장소는 120자 이하로 입력해 주세요."),
     budget_min: z.number({ invalid_type_error: "숫자를 입력해 주세요." }).int().positive().optional(),
     budget_max: z.number({ invalid_type_error: "숫자를 입력해 주세요." }).int().positive().optional(),
+    preferred_freelancer_type: nonEmptyStringArray("희망 진행자 유형을 1개 이상 선택해 주세요."),
+    preferred_styles: nonEmptyStringArray("원하는 진행 분위기를 1개 이상 선택해 주세요."),
     required_language: optionalTrimmedString(40, "언어는 40자 이하로 입력해 주세요."),
     description: optionalTrimmedString(2000, "요청사항은 2000자 이하로 입력해 주세요."),
     script_required: z.boolean().default(false),
@@ -46,7 +76,9 @@ const schema = z
     path: ["budget_max"],
     message: "최대 예산은 최소 예산보다 크거나 같아야 합니다.",
   });
+
 type FormValues = z.infer<typeof schema>;
+type MultiValueFieldName = "preferred_freelancer_type" | "preferred_styles";
 
 function Field({ label, error, required, children }: { label: string; error?: string; required?: boolean; children: React.ReactNode }) {
   return (
@@ -58,25 +90,97 @@ function Field({ label, error, required, children }: { label: string; error?: st
   );
 }
 
+function ChipGroup({
+  label,
+  required,
+  options,
+  selected,
+  error,
+  description,
+  onToggle,
+}: {
+  label: string;
+  required?: boolean;
+  options: readonly string[];
+  selected: string[];
+  error?: string;
+  description?: string;
+  onToggle: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <div>
+        <Label>{label}{required && <span className="text-destructive ml-0.5">*</span>}</Label>
+        {description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => {
+          const active = selected.includes(option);
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onToggle(option)}
+              className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-bold transition-colors ${
+                active
+                  ? "border-navy bg-navy text-white"
+                  : "border-line bg-card text-text hover:border-lavender hover:text-lavender"
+              }`}
+            >
+              {option}
+              {active && <X className="h-3 w-3" />}
+            </button>
+          );
+        })}
+      </div>
+      {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
+}
+
 function NewRequestContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const freelancerId = searchParams.get("freelancerId");
   const queryClient = useQueryClient();
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      preferred_freelancer_type: [],
+      preferred_styles: [],
+      script_required: false,
+      rehearsal_required: false,
+      travel_required: false,
+    },
   });
+
+  const selectedFreelancerTypes = watch("preferred_freelancer_type") ?? [];
+  const selectedStyles = watch("preferred_styles") ?? [];
+
+  const toggleValue = (fieldName: MultiValueFieldName, selectedValues: string[], value: string) => {
+    const exists = selectedValues.includes(value);
+    const next = exists
+      ? selectedValues.filter((item) => item !== value)
+      : [...selectedValues, value];
+
+    setValue(fieldName, next, { shouldDirty: true, shouldValidate: true });
+  };
 
   const mutation = useMutation({
     mutationFn: (data: FormValues) => customerApi.createRequest({
       ...data,
-      // 특정 진행자 지명 섭외 시 preferred_freelancer_ids에 포함
       ...(freelancerId ? { preferred_freelancer_ids: [freelancerId] } : {}),
     }),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.customerRequests });
       const id = res.data.data?.id;
-      router.push(id ? `/customer/requests/${id}/recommendations` : "/customer/requests");
+      router.push(id ? `/customer/requests/${id}` : "/customer/requests");
     },
   });
 
@@ -84,7 +188,7 @@ function NewRequestContent() {
     <div className="animate-fade-in max-w-2xl">
       {freelancerId && (
         <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          ✅ 특정 진행자를 지명하여 요청서를 작성합니다. 제출 후 해당 진행자가 우선 검토됩니다.
+          ✅ 특정 진행자를 지명하여 요청서를 작성합니다. 제출 후 관리자 검수 과정에서 해당 진행자가 우선 후보로 반영됩니다.
         </div>
       )}
       <div className="flex items-center gap-3 mb-6">
@@ -93,7 +197,7 @@ function NewRequestContent() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold">요청서 작성</h1>
-          <p className="text-muted-foreground text-sm">행사 정보를 입력하면 AI 데이터 매칭으로 맞춤 진행자를 바로 추천해 드립니다</p>
+          <p className="text-muted-foreground text-sm">행사 조건을 구조화해 입력하면 맞춤 후보 추천과 관리자 검수가 진행됩니다</p>
         </div>
       </div>
 
@@ -108,7 +212,7 @@ function NewRequestContent() {
           <CardHeader><CardTitle className="text-base">행사 기본 정보</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <Field label="행사명" error={errors.event_title?.message} required>
-              <Input placeholder="2024 하반기 임직원 시상식" {...register("event_title")} />
+              <Input placeholder="2026 하반기 임직원 시상식" {...register("event_title")} />
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="행사 종류" error={errors.event_type?.message} required>
@@ -132,6 +236,30 @@ function NewRequestContent() {
                 <Input type="time" {...register("end_time")} />
               </Field>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-4">
+          <CardHeader><CardTitle className="text-base">희망 진행자 조건</CardTitle></CardHeader>
+          <CardContent className="space-y-5">
+            <ChipGroup
+              label="희망 진행자 유형"
+              required
+              options={FREELANCER_TYPE_OPTIONS}
+              selected={selectedFreelancerTypes}
+              error={errors.preferred_freelancer_type?.message}
+              description="행사에 적합한 전문 분야를 선택해 주세요."
+              onToggle={(value) => toggleValue("preferred_freelancer_type", selectedFreelancerTypes, value)}
+            />
+            <ChipGroup
+              label="원하는 진행 분위기"
+              required
+              options={STYLE_OPTIONS}
+              selected={selectedStyles}
+              error={errors.preferred_styles?.message}
+              description="고객이 후보를 비교할 때 가장 중요한 진행 톤입니다."
+              onToggle={(value) => toggleValue("preferred_styles", selectedStyles, value)}
+            />
           </CardContent>
         </Card>
 
@@ -169,7 +297,7 @@ function NewRequestContent() {
           <CardContent>
             {errors.description && <p role="alert" className="text-xs text-destructive mb-2">{errors.description.message}</p>}
             <Textarea
-              placeholder="진행자에게 원하는 스타일이나 특별한 요구사항을 자유롭게 작성해 주세요."
+              placeholder="대본 작성 범위, 리허설 방식, 행사 콘셉트, 선호하지 않는 진행 방식 등을 자유롭게 작성해 주세요."
               rows={5}
               {...register("description")}
             />
@@ -177,7 +305,7 @@ function NewRequestContent() {
         </Card>
 
         <Button type="submit" className="w-full bg-navy text-white hover:bg-navy-light" size="lg" disabled={isSubmitting || mutation.isPending}>
-          {mutation.isPending ? "AI 매칭 중..." : "요청서 제출하고 AI 추천받기"}
+          {mutation.isPending ? "요청서 제출 중..." : "요청서 제출하기"}
         </Button>
       </form>
     </div>

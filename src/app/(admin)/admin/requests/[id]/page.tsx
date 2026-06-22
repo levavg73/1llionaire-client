@@ -108,6 +108,10 @@ export default function AdminRequestDetailPage({ params }: { params: { id: strin
             {(req.budget_min || req.budget_max) && (
               <div><p className="text-muted-foreground">예산</p><p className="font-medium">{req.budget_min ? formatPrice(req.budget_min) : ""} ~ {req.budget_max ? formatPrice(req.budget_max) : ""}</p></div>
             )}
+            <div><p className="text-muted-foreground">행사 종류</p><p className="font-medium">{req.event_type}</p></div>
+            {req.required_language && <div><p className="text-muted-foreground">필요 언어</p><p className="font-medium">{req.required_language}</p></div>}
+            <div className="col-span-2"><p className="text-muted-foreground mb-1">희망 진행자 유형</p><div className="flex flex-wrap gap-1.5">{req.preferred_freelancer_type?.length ? req.preferred_freelancer_type.map((item) => <span key={item} className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">{item}</span>) : <span className="text-muted-foreground">미지정</span>}</div></div>
+            <div className="col-span-2"><p className="text-muted-foreground mb-1">원하는 진행 분위기</p><div className="flex flex-wrap gap-1.5">{req.preferred_styles?.length ? req.preferred_styles.map((item) => <span key={item} className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">{item}</span>) : <span className="text-muted-foreground">미지정</span>}</div></div>
           </CardContent>
         </Card>
 
@@ -154,6 +158,7 @@ export default function AdminRequestDetailPage({ params }: { params: { id: strin
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-sm">{rec.freelancer.display_name}</p>
                         <FreelancerStatusBadge status={rec.freelancer.status} />
+                        {rec.status === "draft" && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">검수 대기</span>}
                       </div>
                       {rec.recommendation_reason && (
                         <p className="text-xs text-muted-foreground mt-1">{rec.recommendation_reason}</p>

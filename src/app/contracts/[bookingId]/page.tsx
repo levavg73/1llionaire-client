@@ -33,7 +33,7 @@ export default function ContractPage({ params }: { params: { bookingId: string }
           </Link>
           <div>
             <h1 className="text-2xl font-bold">계약서</h1>
-            <p className="text-sm text-muted-foreground">예약 확정 후 계약서를 생성하고 양측 전자서명을 진행하세요.</p>
+            <p className="text-sm text-muted-foreground">결제 전 계약서를 확인하고 양측 전자서명을 진행하세요.</p>
           </div>
         </div>
 

@@ -3,7 +3,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Header } from "@/components/layout/Header";
 
-const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://1llionaire-client.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://voit-client.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

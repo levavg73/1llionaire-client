@@ -15,7 +15,7 @@ import { formatDate, formatPrice } from "@/lib/utils";
 import type { Booking, BookingStatus } from "@/types";
 import { FileText, MessageSquare } from "lucide-react";
 
-const contractVisibleStatuses: BookingStatus[] = ["confirmed", "completion_requested", "completed"];
+const contractVisibleStatuses: BookingStatus[] = ["payment_pending", "confirmed", "completion_requested", "completed"];
 
 function canViewContract(status: BookingStatus) {
   return contractVisibleStatuses.includes(status);

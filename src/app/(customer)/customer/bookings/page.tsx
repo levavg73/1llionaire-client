@@ -15,7 +15,7 @@ import { FileText, MessageSquare } from "lucide-react";
 import { formatDate, formatPrice } from "@/lib/utils";
 import type { Booking, BookingStatus } from "@/types";
 
-const contractVisibleStatuses: BookingStatus[] = ["confirmed", "completion_requested", "completed"];
+const contractVisibleStatuses: BookingStatus[] = ["payment_pending", "confirmed", "completion_requested", "completed"];
 
 function canViewContract(status: BookingStatus) {
   return contractVisibleStatuses.includes(status);
@@ -25,6 +25,18 @@ function canCompleteBooking(booking: Booking) {
   return (
     booking.payment_status === "fully_paid" &&
     (booking.booking_status === "confirmed" || booking.booking_status === "completion_requested")
+  );
+}
+
+function needsContractSignature(booking: Booking) {
+  return !!booking.contract && booking.contract.status !== "fully_signed";
+}
+
+function canPayBooking(booking: Booking) {
+  return (
+    ["payment_pending", "confirmed"].includes(booking.booking_status) &&
+    booking.payment_status !== "fully_paid" &&
+    !needsContractSignature(booking)
   );
 }
 
@@ -107,14 +119,19 @@ export default function CustomerBookingsPage() {
                     </Link>
                   )}
 
-                  {["payment_pending", "confirmed"].includes(booking.booking_status) &&
-                    booking.payment_status !== "fully_paid" && (
-                      <Link href={`/customer/bookings/${booking.id}/payment`}>
-                        <Button size="sm" className="text-xs bg-navy text-white hover:bg-navy-light">
-                          결제하기
-                        </Button>
-                      </Link>
-                    )}
+                  {needsContractSignature(booking) && (
+                    <span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">
+                      계약 서명 후 결제 가능
+                    </span>
+                  )}
+
+                  {canPayBooking(booking) && (
+                    <Link href={`/customer/bookings/${booking.id}/payment`}>
+                      <Button size="sm" className="text-xs bg-navy text-white hover:bg-navy-light">
+                        결제하기
+                      </Button>
+                    </Link>
+                  )}
 
                   {canCompleteBooking(booking) && (
                     <Button

@@ -161,8 +161,11 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
   if (!booking) return null;
 
   // 결제 불가 상태 체크
-  const canPay = ["payment_pending", "confirmed"].includes(booking.booking_status) &&
-    booking.payment_status !== "fully_paid";
+  const isPayableStatus = ["payment_pending", "confirmed"].includes(booking.booking_status);
+  const needsContractSignature = !!booking.contract && booking.contract.status !== "fully_signed";
+  const canPay = isPayableStatus &&
+    booking.payment_status !== "fully_paid" &&
+    !needsContractSignature;
 
   return (
     <div className="animate-fade-in max-w-lg">
@@ -212,9 +215,22 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
       {!canPay && (
         <Card className="mb-4 border-amber-200 bg-amber-50">
           <CardContent className="pt-5 pb-5 text-sm text-amber-800">
-            {!["payment_pending", "confirmed"].includes(booking.booking_status)
+            {!isPayableStatus
               ? "프리랜서 수락 또는 가격 확정 후 결제할 수 있습니다."
-              : "이미 결제가 완료되었습니다."}
+              : needsContractSignature
+                ? "계약서에 고객과 프리랜서 양측 서명이 완료된 후 결제할 수 있습니다."
+                : "이미 결제가 완료되었습니다."}
+            {needsContractSignature && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-3 border-amber-300 bg-white text-amber-800 hover:bg-amber-100"
+                onClick={() => router.push(`/contracts/${booking.id}`)}
+              >
+                계약서 확인하기
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}

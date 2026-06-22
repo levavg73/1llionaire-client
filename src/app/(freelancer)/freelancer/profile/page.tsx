@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent, type KeyboardEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,12 +21,111 @@ import {
   MAX_PROFILE_IMAGE_SIZE,
   ALLOWED_PROFILE_IMAGE_TYPES,
   LANGUAGE_OPTIONS,
+  CATEGORY_OPTIONS,
+  STYLE_OPTIONS,
+  REGION_OPTIONS,
   profileFormSchema as schema,
   type ProfileFormValues as FormValues,
 } from "@/components/freelancer/ProfileFormSchema";
 
 function RequiredMark() {
   return <span className="ml-0.5 text-destructive">*</span>;
+}
+
+type MultiValueFieldName = "languages" | "categories" | "styles" | "available_regions";
+
+function ChipSelector({
+  label,
+  required,
+  options,
+  selected,
+  customValue,
+  customPlaceholder,
+  description,
+  error,
+  onToggle,
+  onCustomValueChange,
+  onAddCustom,
+}: {
+  label: string;
+  required?: boolean;
+  options: readonly string[];
+  selected: string[];
+  customValue: string;
+  customPlaceholder: string;
+  description?: string;
+  error?: string;
+  onToggle: (value: string) => void;
+  onCustomValueChange: (value: string) => void;
+  onAddCustom: () => void;
+}) {
+  const handleEnter = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      onAddCustom();
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1">
+        <Label>
+          {label} {required && <RequiredMark />}
+        </Label>
+        {description && <p className="text-xs text-muted-foreground">{description}</p>}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => {
+          const active = selected.includes(option);
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onToggle(option)}
+              className={`rounded-full border px-3 py-1.5 text-sm font-bold transition-colors ${
+                active
+                  ? "border-navy bg-navy text-white"
+                  : "border-line bg-card text-text hover:border-lavender hover:text-lavender"
+              }`}
+            >
+              {option}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex gap-2">
+        <Input
+          value={customValue}
+          onChange={(event) => onCustomValueChange(event.target.value)}
+          onKeyDown={handleEnter}
+          placeholder={customPlaceholder}
+        />
+        <Button type="button" variant="outline" onClick={onAddCustom}>
+          추가
+        </Button>
+      </div>
+
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-2 rounded-xl bg-surface p-3">
+          {selected.map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onToggle(value)}
+              className="inline-flex items-center gap-1 rounded-full bg-card px-2.5 py-1 text-xs font-bold text-text shadow-sm hover:text-destructive"
+            >
+              {value}
+              <X className="h-3 w-3" />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
 }
 
 export default function FreelancerProfilePage() {
@@ -36,6 +135,9 @@ export default function FreelancerProfilePage() {
   const [profileImageError, setProfileImageError] = useState("");
   const [profileImageInputKey, setProfileImageInputKey] = useState(0);
   const [customLanguage, setCustomLanguage] = useState("");
+  const [customCategory, setCustomCategory] = useState("");
+  const [customStyle, setCustomStyle] = useState("");
+  const [customRegion, setCustomRegion] = useState("");
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: queryKeys.freelancerProfile,
@@ -56,10 +158,19 @@ export default function FreelancerProfilePage() {
     resolver: zodResolver(schema),
     defaultValues: {
       languages: [],
+      categories: [],
+      styles: [],
+      available_regions: [],
+      script_writing_available: false,
+      rehearsal_available: false,
+      travel_available: false,
     },
   });
 
   const selectedLanguages = watch("languages") ?? [];
+  const selectedCategories = watch("categories") ?? [];
+  const selectedStyles = watch("styles") ?? [];
+  const selectedAvailableRegions = watch("available_regions") ?? [];
 
   useEffect(() => {
     if (!profile) return;
@@ -69,6 +180,9 @@ export default function FreelancerProfilePage() {
       headline: profile.headline ?? "",
       bio: profile.bio ?? "",
       region: profile.region ?? "",
+      available_regions: profile.available_regions ?? [],
+      categories: profile.categories ?? [],
+      styles: profile.styles ?? [],
       career_years: profile.career_years,
       base_price_min: profile.base_price_min,
       base_price_max: profile.base_price_max,
@@ -107,6 +221,9 @@ export default function FreelancerProfilePage() {
       const payload = {
         ...values,
         languages: values.languages ?? [],
+        categories: values.categories ?? [],
+        styles: values.styles ?? [],
+        available_regions: values.available_regions ?? [],
         profile_image_path: profileImagePath,
       };
 
@@ -135,7 +252,7 @@ export default function FreelancerProfilePage() {
     },
   });
 
-  const handleProfileImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProfileImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     setProfileImageError("");
 
@@ -183,24 +300,29 @@ export default function FreelancerProfilePage() {
     deleteProfileImageMutation.mutate();
   };
 
-  const toggleLanguage = (language: string) => {
-    const exists = selectedLanguages.includes(language);
+  const toggleValue = (fieldName: MultiValueFieldName, selectedValues: string[], value: string) => {
+    const exists = selectedValues.includes(value);
     const next = exists
-      ? selectedLanguages.filter((item) => item !== language)
-      : [...selectedLanguages, language];
+      ? selectedValues.filter((item) => item !== value)
+      : [...selectedValues, value];
 
-    setValue("languages", next, { shouldDirty: true, shouldValidate: true });
+    setValue(fieldName, next, { shouldDirty: true, shouldValidate: true });
   };
 
-  const addCustomLanguage = () => {
-    const language = customLanguage.trim();
-    if (!language) return;
+  const addCustomValue = (
+    fieldName: MultiValueFieldName,
+    selectedValues: string[],
+    value: string,
+    onClear: () => void
+  ) => {
+    const trimmed = value.trim();
+    if (!trimmed) return;
 
-    if (!selectedLanguages.includes(language)) {
-      setValue("languages", [...selectedLanguages, language], { shouldDirty: true, shouldValidate: true });
+    if (!selectedValues.includes(trimmed)) {
+      setValue(fieldName, [...selectedValues, trimmed], { shouldDirty: true, shouldValidate: true });
     }
 
-    setCustomLanguage("");
+    onClear();
   };
 
   if (isLoading) return <LoadingState />;
@@ -214,7 +336,7 @@ export default function FreelancerProfilePage() {
         <div>
           <h1 className="text-2xl font-bold">내 프로필</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            프로필을 완성하고 등록 신청하세요
+            분야·스타일·가능 지역과 포트폴리오를 완성해 매칭 정확도를 높이세요
           </p>
         </div>
         {profile && <FreelancerStatusBadge status={profile.status} />}
@@ -284,7 +406,7 @@ export default function FreelancerProfilePage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="region">활동 지역 <RequiredMark /></Label>
+                <Label htmlFor="region">대표 활동 지역 <RequiredMark /></Label>
                 <Input id="region" placeholder="서울" {...register("region")} />
                 {errors.region && <p className="text-xs text-destructive">{errors.region.message}</p>}
               </div>
@@ -316,6 +438,7 @@ export default function FreelancerProfilePage() {
                     size="sm"
                     onClick={handleProfileImageRemove}
                     disabled={isSaving}
+                    className="gap-1.5"
                   >
                     {selectedProfileImageFile ? <X className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
                     {selectedProfileImageFile ? "선택 취소" : "이미지 삭제"}
@@ -344,64 +467,70 @@ export default function FreelancerProfilePage() {
 
         <Card className="mb-4">
           <CardHeader>
-            <CardTitle className="text-base">가능 언어</CardTitle>
+            <CardTitle className="text-base">전문 분야 & 진행 스타일</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex flex-wrap gap-2">
-              {LANGUAGE_OPTIONS.map((language) => {
-                const active = selectedLanguages.includes(language);
-                return (
-                  <button
-                    key={language}
-                    type="button"
-                    onClick={() => toggleLanguage(language)}
-                    className={`rounded-full border px-3 py-1.5 text-sm font-bold transition-colors ${
-                      active
-                        ? "border-navy bg-navy text-white"
-                        : "border-line bg-card text-text hover:border-lavender hover:text-lavender"
-                    }`}
-                  >
-                    {language}
-                  </button>
-                );
-              })}
-            </div>
+          <CardContent className="space-y-6">
+            <ChipSelector
+              label="가능 분야"
+              required
+              options={CATEGORY_OPTIONS}
+              selected={selectedCategories}
+              customValue={customCategory}
+              customPlaceholder="기타 분야 직접 입력"
+              description="고객 요청서의 행사 유형·희망 진행자 유형과 매칭되는 핵심 기준입니다."
+              error={errors.categories?.message}
+              onToggle={(value) => toggleValue("categories", selectedCategories, value)}
+              onCustomValueChange={setCustomCategory}
+              onAddCustom={() => addCustomValue("categories", selectedCategories, customCategory, () => setCustomCategory(""))}
+            />
 
-            <div className="flex gap-2">
-              <Input
-                value={customLanguage}
-                onChange={(event) => setCustomLanguage(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    addCustomLanguage();
-                  }
-                }}
-                placeholder="기타 언어 직접 입력"
-              />
-              <Button type="button" variant="outline" onClick={addCustomLanguage}>
-                추가
-              </Button>
-            </div>
+            <ChipSelector
+              label="진행 스타일"
+              required
+              options={STYLE_OPTIONS}
+              selected={selectedStyles}
+              customValue={customStyle}
+              customPlaceholder="기타 스타일 직접 입력"
+              description="정중함, 활기, 차분함 등 고객이 비교하는 진행 톤입니다."
+              error={errors.styles?.message}
+              onToggle={(value) => toggleValue("styles", selectedStyles, value)}
+              onCustomValueChange={setCustomStyle}
+              onAddCustom={() => addCustomValue("styles", selectedStyles, customStyle, () => setCustomStyle(""))}
+            />
+          </CardContent>
+        </Card>
 
-            {selectedLanguages.length > 0 && (
-              <div className="flex flex-wrap gap-2 rounded-xl bg-surface p-3">
-                {selectedLanguages.map((language) => (
-                  <button
-                    key={language}
-                    type="button"
-                    onClick={() => toggleLanguage(language)}
-                    className="inline-flex items-center gap-1 rounded-full bg-card px-2.5 py-1 text-xs font-bold text-text shadow-sm hover:text-destructive"
-                  >
-                    {language}
-                    <X className="h-3 w-3" />
-                  </button>
-                ))}
-              </div>
-            )}
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="text-base">가능 지역 & 언어</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <ChipSelector
+              label="진행 가능 지역"
+              required
+              options={REGION_OPTIONS}
+              selected={selectedAvailableRegions}
+              customValue={customRegion}
+              customPlaceholder="기타 지역 직접 입력"
+              description="대표 활동 지역 외 출장·진행 가능한 지역을 모두 선택하세요."
+              error={errors.available_regions?.message}
+              onToggle={(value) => toggleValue("available_regions", selectedAvailableRegions, value)}
+              onCustomValueChange={setCustomRegion}
+              onAddCustom={() => addCustomValue("available_regions", selectedAvailableRegions, customRegion, () => setCustomRegion(""))}
+            />
 
-            {errors.languages && <p className="text-xs text-destructive">{errors.languages.message}</p>}
-            <p className="text-xs text-muted-foreground">한국어, 영어, 독일어, 프랑스어 등 실제 진행 가능한 언어를 선택하거나 직접 입력하세요.</p>
+            <ChipSelector
+              label="가능 언어"
+              options={LANGUAGE_OPTIONS}
+              selected={selectedLanguages}
+              customValue={customLanguage}
+              customPlaceholder="기타 언어 직접 입력"
+              description="실제 진행 가능한 언어를 선택하거나 직접 입력하세요."
+              error={errors.languages?.message}
+              onToggle={(value) => toggleValue("languages", selectedLanguages, value)}
+              onCustomValueChange={setCustomLanguage}
+              onAddCustom={() => addCustomValue("languages", selectedLanguages, customLanguage, () => setCustomLanguage(""))}
+            />
           </CardContent>
         </Card>
 

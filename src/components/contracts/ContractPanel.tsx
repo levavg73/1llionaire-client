@@ -12,7 +12,7 @@ import type { BookingStatus, Contract } from "@/types";
 import { FileText, PenLine, Printer } from "lucide-react";
 
 function canGenerateContract(status?: BookingStatus) {
-  return status === "confirmed" || status === "completion_requested" || status === "completed";
+  return status === "payment_pending" || status === "confirmed" || status === "completion_requested" || status === "completed";
 }
 
 function getSafeMessage(error: unknown, fallback: string) {
@@ -78,7 +78,7 @@ export function ContractPanel({
         {isNotFound && (
           <div className="space-y-3">
             <p className="text-muted-foreground">
-              아직 계약서가 생성되지 않았습니다. 예약 확정 후 고객 또는 프리랜서가 계약서를 생성할 수 있습니다.
+              아직 계약서가 생성되지 않았습니다. 결제 대기 또는 예약 확정 상태에서 고객 또는 프리랜서가 계약서를 생성할 수 있습니다.
             </p>
             <Button
               type="button"
@@ -89,7 +89,7 @@ export function ContractPanel({
               {generateMutation.isPending ? "생성 중..." : "계약서 생성"}
             </Button>
             {!canGenerateContract(bookingStatus) && (
-              <p className="text-xs text-muted-foreground">예약 확정 후 계약서 생성이 가능합니다.</p>
+              <p className="text-xs text-muted-foreground">결제 대기 또는 예약 확정 후 계약서 생성이 가능합니다.</p>
             )}
           </div>
         )}

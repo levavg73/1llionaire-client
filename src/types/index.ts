@@ -254,6 +254,14 @@ export interface Booking {
   chat_room?: ChatRoom | null;
   offers?: BookingOffer[];
   reviews?: Review[];
+  contract?: Pick<
+    Contract,
+    | "id"
+    | "status"
+    | "customer_signed_at"
+    | "freelancer_signed_at"
+    | "fully_signed_at"
+  > | null;
 }
 
 // ─── 후기 ────────────────────────────────────────────────────
@@ -358,15 +366,22 @@ export interface Contract {
   updated_at: string;
 }
 
+export interface PricingAnalysisLineItem {
+  name: string;
+  description: string;
+  estimated_price: number;
+  reason: string;
+}
+
 export interface PricingAnalysis {
+  event_summary: string;
+  line_items: PricingAnalysisLineItem[];
   recommended_min: number;
   recommended_max: number;
   recommended_center: number;
   confidence: "high" | "medium" | "low";
-  rationale: string;
-  market_context: string;
-  factors: string[];
-  risk_notes: string[];
+  assumptions: string[];
+  caution_notes: string[];
   generated_at: string;
 }
 
