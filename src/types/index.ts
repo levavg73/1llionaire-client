@@ -168,6 +168,7 @@ export interface EventRequest {
   rehearsal_required: boolean;
   travel_required: boolean;
   description?: string;
+  view_count?: number;
   status: RequestStatus;
   created_at: string;
   updated_at: string;

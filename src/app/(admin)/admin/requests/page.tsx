@@ -2,93 +2,94 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import { adminApi } from "@/lib/api";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { customerApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { RequestStatusBadge } from "@/components/common/StatusBadge";
 import { LoadingState, EmptyState, ErrorState } from "@/components/common/States";
 import { Pagination } from "@/components/common/Pagination";
-import { ChevronRight } from "lucide-react";
+import { Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import { EventRequest, RequestStatus } from "@/types";
+import { EventRequest } from "@/types";
 
-const STATUS_TABS: { value: RequestStatus | ""; label: string }[] = [
-  { value: "", label: "전체" },
-  { value: "submitted", label: "접수" },
-  { value: "reviewing", label: "검토 중" },
-  { value: "recommending", label: "후보 선정 중" },
-  { value: "recommended", label: "추천 완료" },
-  { value: "booked", label: "예약 완료" },
-];
-
-interface RequestRow extends EventRequest {
-  customer?: { id: string; name: string; email: string };
-  _count?: { recommendations: number };
+function getRequestSummary(req: EventRequest) {
+  if (req.description?.trim()) return req.description.trim();
+  return `${req.event_type} 행사를 ${req.region}에서 진행할 진행자를 찾고 있습니다.`;
 }
 
-export default function AdminRequestsPage() {
+export default function CustomerRequestsPage() {
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<RequestStatus | "">("");
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: queryKeys.adminRequestsList(page, statusFilter),
-    queryFn: () => adminApi.getRequests({ page, limit: 15, ...(statusFilter && { status: statusFilter }) }),
+    queryKey: queryKeys.customerRequestsPage(page),
+    queryFn: () => customerApi.getRequests({ page, limit: 12 }),
+    placeholderData: keepPreviousData,
+    staleTime: 2 * 60 * 1000,
   });
 
-  const items: RequestRow[] = data?.data?.data?.items ?? [];
-  const pagination = data?.data?.data?.pagination;
+  const result = data?.data;
+  const items: EventRequest[] = result?.data?.items ?? [];
+  const pagination = result?.data?.pagination;
 
   return (
     <div className="animate-fade-in">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">요청서 관리</h1>
-      </div>
-
-      <div className="flex gap-2 mb-4 flex-wrap">
-        {STATUS_TABS.map(({ value, label }) => (
-          <button
-            key={value}
-            onClick={() => { setStatusFilter(value); setPage(1); }}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              statusFilter === value ? "bg-navy text-white" : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">내 요청서</h1>
+          <p className="mt-1 text-sm text-muted-foreground">섭외 요청서를 작성하고 현황을 확인하세요</p>
+        </div>
+        <Link href="/customer/requests/new" className="shrink-0">
+          <Button className="gap-2 bg-navy text-white hover:bg-navy-light">
+            <Plus className="h-4 w-4" />
+            요청서 작성
+          </Button>
+        </Link>
       </div>
 
       {isLoading && <LoadingState />}
       {isError && <ErrorState onRetry={() => refetch()} />}
-      {!isLoading && !isError && items.length === 0 && <EmptyState title="요청서가 없습니다" />}
+      {!isLoading && !isError && items.length === 0 && (
+        <EmptyState
+          title="요청서가 없습니다"
+          description="오른쪽 상단의 요청서 작성 버튼으로 첫 섭외 요청을 시작하세요."
+        />
+      )}
 
-      <div className="space-y-3">
-        {items.map((req) => (
-          <Link key={req.id} href={`/admin/requests/${req.id}`}>
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <RequestStatusBadge status={req.status} />
-                      <span className="text-xs text-muted-foreground">{formatDate(req.event_date)}</span>
-                      {req._count && req._count.recommendations > 0 && (
-                        <span className="text-xs text-gold font-medium">후보 {req._count.recommendations}명</span>
-                      )}
-                    </div>
-                    <h2 className="font-semibold truncate">{req.event_title}</h2>
-                    <p className="text-sm text-muted-foreground mt-0.5">
-                      {req.customer?.name} · {req.event_type} · {req.region}
-                    </p>
+      {items.length > 0 && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          {items.map((req) => (
+            <Link
+              key={req.id}
+              href={`/customer/requests/${req.id}`}
+              className="group block h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <Card className="flex h-full min-h-[220px] cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+                <CardContent className="flex h-full w-full flex-col p-5">
+                  <div className="mb-3 flex items-start justify-between gap-2">
+                    <p className="line-clamp-1 text-xs font-medium text-muted-foreground">{req.event_type}</p>
+                    <RequestStatusBadge status={req.status} />
                   </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 mt-1" />
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
+
+                  <h2 className="line-clamp-2 min-h-[3.25rem] text-lg font-semibold leading-snug tracking-[-0.01em] group-hover:text-navy">
+                    {req.event_title}
+                  </h2>
+
+                  <p className="mt-3 line-clamp-3 min-h-[4.5rem] text-sm leading-6 text-muted-foreground">
+                    {getRequestSummary(req)}
+                  </p>
+
+                  <div className="mt-auto flex items-center justify-between border-t border-border pt-4 text-xs text-muted-foreground">
+                    <span>작성 {formatDate(req.created_at)}</span>
+                    <span>조회 {req.view_count ?? 0}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
 
       {pagination && <Pagination pagination={pagination} onPageChange={setPage} />}
     </div>

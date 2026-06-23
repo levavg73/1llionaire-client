@@ -1,80 +1,64 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { adminApi } from "@/lib/api";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { ApiError } from "@/lib/api";
+import { customerApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RequestStatusBadge, FreelancerStatusBadge } from "@/components/common/StatusBadge";
-import { LoadingState, ErrorState } from "@/components/common/States";
+import { RequestStatusBadge } from "@/components/common/StatusBadge";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
-import { ArrowLeft, Plus } from "lucide-react";
+import { LoadingState, ErrorState } from "@/components/common/States";
+import { ArrowLeft, Users, Calendar, MapPin, Banknote, Clock, Globe2, FileText, Activity, Plane, Pencil, Trash2 } from "lucide-react";
 import { formatDate, formatPrice } from "@/lib/utils";
-import { EventRequest, RequestStatus, FreelancerProfile } from "@/types";
+import { EventRequest, RequestStatus } from "@/types";
+import { PricingAnalysisCard } from "@/components/ai/PricingAnalysisCard";
 
-interface RequestDetail extends Omit<EventRequest, "recommendations"> {
-  customer?: { id: string; name: string; email: string; phone?: string };
-  recommendations?: Array<{ id: string; display_order: number; recommendation_reason?: string; freelancer: FreelancerProfile; status?: string; request_id?: string; freelancer_id?: string; recommended_by?: string }>;
+const EDITABLE_REQUEST_STATUSES: RequestStatus[] = ["submitted", "reviewing", "recommending", "recommended"];
+const DELETABLE_REQUEST_STATUSES: RequestStatus[] = ["submitted", "reviewing", "recommending", "recommended", "consulting"];
+
+function ChipList({ items }: { items?: string[] }) {
+  if (!items || items.length === 0) return <span className="text-muted-foreground">미지정</span>;
+
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {items.map((item) => (
+        <span key={item} className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-foreground">
+          {item}
+        </span>
+      ))}
+    </div>
+  );
 }
 
-const REQUEST_STATUSES: { value: RequestStatus; label: string }[] = [
-  { value: "submitted",    label: "접수 완료" },
-  { value: "reviewing",    label: "검토 중" },
-  { value: "recommending", label: "후보 선정 중" },
-  { value: "recommended",  label: "추천 완료" },
-  { value: "consulting",   label: "상담 진행 중" },
-  { value: "booked",       label: "예약 완료" },
-  { value: "completed",    label: "행사 완료" },
-  { value: "canceled",     label: "취소" },
-];
-
-export default function AdminRequestDetailPage({ params }: { params: { id: string } }) {
+export default function RequestDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
+  const router = useRouter();
   const queryClient = useQueryClient();
-
-  const [showRecommendForm, setShowRecommendForm] = useState(false);
-  const [recForm, setRecForm] = useState({ freelancer_id: "", recommendation_reason: "", display_order: 1 });
-  const [statusConfirm, setStatusConfirm] = useState<RequestStatus | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: queryKeys.adminRequest(id),
-    queryFn: () => adminApi.getRequest(id),
-  });
-  const req: RequestDetail | undefined = data?.data?.data;
-
-  // 승인된 프리랜서 목록
-  const { data: freelancerData } = useQuery({
-    queryKey: queryKeys.adminFreelancersApproved,
-    queryFn: () => adminApi.getFreelancers({ status: "approved", limit: 100 }),
-    enabled: showRecommendForm,
-  });
-  const approvedFreelancers: FreelancerProfile[] = freelancerData?.data?.data?.items ?? [];
-
-  const statusMutation = useMutation({
-    mutationFn: (status: RequestStatus) => adminApi.updateRequestStatus(id, status),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminRequest(id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminRequests });
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminDashboard });
-      setStatusConfirm(null);
-    },
+    queryKey: queryKeys.customerRequest(id),
+    queryFn: () => customerApi.getRequest(id),
   });
 
-  const recommendMutation = useMutation({
-    mutationFn: (data: typeof recForm & { request_id: string }) =>
-      adminApi.createRecommendation(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminRequest(id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminRequests });
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminDashboard });
-      queryClient.invalidateQueries({ queryKey: queryKeys.recommendations(id) });
-      setShowRecommendForm(false);
-      setRecForm({ freelancer_id: "", recommendation_reason: "", display_order: 1 });
+  const req: EventRequest | undefined = data?.data?.data;
+  const canEdit = req ? EDITABLE_REQUEST_STATUSES.includes(req.status) : false;
+  const canDelete = req ? DELETABLE_REQUEST_STATUSES.includes(req.status) : false;
+
+  const deleteMutation = useMutation({
+    mutationFn: () => customerApi.deleteRequest(id),
+    onSuccess: async () => {
+      setDeleteOpen(false);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.customerRequests }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.customerRequest(id) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.recommendations(id) }),
+      ]);
+      router.push("/customer/requests");
     },
   });
 
@@ -82,10 +66,14 @@ export default function AdminRequestDetailPage({ params }: { params: { id: strin
   if (isError) return <ErrorState onRetry={() => refetch()} />;
   if (!req) return null;
 
+  const recommendationReady = ["recommended", "consulting", "booked", "completed", "reviewed"].includes(req.status);
+  const matchingInProgress = ["submitted", "reviewing", "recommending"].includes(req.status);
+  const deleteErrorMessage = (deleteMutation.error as ApiError<{error:{message:string}}> | null)?.response?.data?.error?.message;
+
   return (
-    <div className="animate-fade-in max-w-3xl">
+    <div className="animate-fade-in max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/admin/requests">
+        <Link href="/customer/requests">
           <Button variant="ghost" size="icon" aria-label="뒤로가기"><ArrowLeft className="h-4 w-4" /></Button>
         </Link>
         <div className="flex-1 min-w-0">
@@ -94,145 +82,114 @@ export default function AdminRequestDetailPage({ params }: { params: { id: strin
           </div>
           <h1 className="text-xl font-bold truncate">{req.event_title}</h1>
         </div>
+        {(canEdit || canDelete) && (
+          <div className="flex shrink-0 items-center gap-2">
+            {canEdit && (
+              <Link href={`/customer/requests/${id}/edit`}>
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Pencil className="h-3.5 w-3.5" />
+                  수정
+                </Button>
+              </Link>
+            )}
+            {canDelete && (
+              <Button variant="outline" size="sm" className="gap-1.5 text-destructive" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="h-3.5 w-3.5" />
+                삭제
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
+      {deleteMutation.isError && (
+        <p role="alert" className="text-sm text-destructive bg-destructive/5 border border-destructive/20 rounded-md px-3 py-2 mb-4">
+          {deleteErrorMessage || "요청서 삭제 중 오류가 발생했습니다."}
+        </p>
+      )}
+
       <div className="grid gap-4">
-        {/* 행사 정보 */}
         <Card>
           <CardHeader><CardTitle className="text-sm text-muted-foreground font-medium">행사 정보</CardTitle></CardHeader>
-          <CardContent className="grid grid-cols-2 gap-3 text-sm">
-            <div><p className="text-muted-foreground">고객</p><p className="font-medium">{req.customer?.name} ({req.customer?.email})</p></div>
-            <div><p className="text-muted-foreground">행사 날짜</p><p className="font-medium">{formatDate(req.event_date)}</p></div>
-            <div><p className="text-muted-foreground">지역/장소</p><p className="font-medium">{req.region}{req.venue && ` · ${req.venue}`}</p></div>
-            <div><p className="text-muted-foreground">진행 시간</p><p className="font-medium">{req.start_time} ~ {req.end_time}</p></div>
+          <CardContent className="grid grid-cols-2 gap-4 text-sm">
+            <div className="flex gap-2"><Calendar className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" /><div><p className="text-muted-foreground">날짜</p><p className="font-medium">{formatDate(req.event_date)}</p></div></div>
+            <div className="flex gap-2"><Clock className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" /><div><p className="text-muted-foreground">진행 시간</p><p className="font-medium">{req.start_time} ~ {req.end_time}</p></div></div>
+            <div className="flex gap-2"><MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" /><div><p className="text-muted-foreground">지역/장소</p><p className="font-medium">{req.region}{req.venue && ` · ${req.venue}`}</p></div></div>
             {(req.budget_min || req.budget_max) && (
-              <div><p className="text-muted-foreground">예산</p><p className="font-medium">{req.budget_min ? formatPrice(req.budget_min) : ""} ~ {req.budget_max ? formatPrice(req.budget_max) : ""}</p></div>
+              <div className="flex gap-2"><Banknote className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" /><div><p className="text-muted-foreground">예산</p><p className="font-medium">{req.budget_min ? formatPrice(req.budget_min) : ""} ~ {req.budget_max ? formatPrice(req.budget_max) : ""}</p></div></div>
             )}
-            <div><p className="text-muted-foreground">행사 종류</p><p className="font-medium">{req.event_type}</p></div>
-            {req.required_language && <div><p className="text-muted-foreground">필요 언어</p><p className="font-medium">{req.required_language}</p></div>}
-            <div className="col-span-2"><p className="text-muted-foreground mb-1">희망 진행자 유형</p><div className="flex flex-wrap gap-1.5">{req.preferred_freelancer_type?.length ? req.preferred_freelancer_type.map((item) => <span key={item} className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">{item}</span>) : <span className="text-muted-foreground">미지정</span>}</div></div>
-            <div className="col-span-2"><p className="text-muted-foreground mb-1">원하는 진행 분위기</p><div className="flex flex-wrap gap-1.5">{req.preferred_styles?.length ? req.preferred_styles.map((item) => <span key={item} className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">{item}</span>) : <span className="text-muted-foreground">미지정</span>}</div></div>
+            {req.required_language && (
+              <div className="flex gap-2"><Globe2 className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" /><div><p className="text-muted-foreground">필요 언어</p><p className="font-medium">{req.required_language}</p></div></div>
+            )}
           </CardContent>
         </Card>
 
-        {/* 상태 변경 */}
         <Card>
-          <CardHeader><CardTitle className="text-sm text-muted-foreground font-medium">상태 변경</CardTitle></CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {REQUEST_STATUSES.map(({ value, label }) => (
-                <button
-                  key={value}
-                  disabled={req.status === value}
-                  onClick={() => setStatusConfirm(value)}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
-                    req.status === value
-                      ? "bg-navy text-white border-navy"
-                      : "border-border hover:border-navy hover:text-navy"
-                  } disabled:opacity-100`}
-                >
-                  {label}
-                </button>
+          <CardHeader><CardTitle className="text-sm text-muted-foreground font-medium">희망 진행자 조건</CardTitle></CardHeader>
+          <CardContent className="space-y-4 text-sm">
+            <div>
+              <p className="mb-1.5 text-muted-foreground">희망 진행자 유형</p>
+              <ChipList items={req.preferred_freelancer_type} />
+            </div>
+            <div>
+              <p className="mb-1.5 text-muted-foreground">원하는 진행 분위기</p>
+              <ChipList items={req.preferred_styles} />
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {[
+                { icon: FileText, label: "대본", active: req.script_required },
+                { icon: Activity, label: "리허설", active: req.rehearsal_required },
+                { icon: Plane, label: "출장", active: req.travel_required },
+              ].map(({ icon: Icon, label, active }) => (
+                <div key={label} className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2">
+                  <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className={active ? "font-medium text-foreground" : "text-muted-foreground"}>
+                    {label} {active ? "필요" : "불필요"}
+                  </span>
+                </div>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* 추천 후보 */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm text-muted-foreground font-medium">추천 후보</CardTitle>
-            <Button size="sm" variant="outline" className="gap-1.5 h-8" onClick={() => setShowRecommendForm(true)}>
-              <Plus className="h-3.5 w-3.5" /> 후보 추천
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {(!req.recommendations || req.recommendations.length === 0) ? (
-              <p className="text-sm text-muted-foreground">추천된 후보가 없습니다.</p>
-            ) : (
-              <div className="space-y-3">
-                {req.recommendations.map((rec) => (
-                  <div key={rec.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                    <span className="text-xs font-bold text-gold bg-gold/10 px-2 py-1 rounded-full shrink-0">#{rec.display_order}</span>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-sm">{rec.freelancer.display_name}</p>
-                        <FreelancerStatusBadge status={rec.freelancer.status} />
-                        {rec.status === "draft" && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">검수 대기</span>}
-                      </div>
-                      {rec.recommendation_reason && (
-                        <p className="text-xs text-muted-foreground mt-1">{rec.recommendation_reason}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+        <PricingAnalysisCard request={req} />
 
-            {showRecommendForm && (
-              <div className="mt-4 p-4 border rounded-lg space-y-3 bg-muted/30">
-                <p className="text-sm font-medium">후보 추천 추가</p>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">프리랜서 선택 (승인된 진행자만)</Label>
-                  <select
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                    value={recForm.freelancer_id}
-                    onChange={(e) => setRecForm((f) => ({ ...f, freelancer_id: e.target.value }))}
-                    aria-label="프리랜서 선택"
-                  >
-                    <option value="">선택하세요</option>
-                    {approvedFreelancers.map((f) => (
-                      <option key={f.id} value={f.id}>
-                        {f.display_name} ({f.region} · {f.career_years}년)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">표시 순서</Label>
-                  <Input
-                    type="number" min={1} max={10}
-                    value={recForm.display_order}
-                    onChange={(e) => setRecForm((f) => ({ ...f, display_order: parseInt(e.target.value) || 1 }))}
-                    className="w-24"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">추천 사유</Label>
-                  <Textarea
-                    rows={2}
-                    placeholder="이 진행자를 추천하는 이유를 입력하세요"
-                    value={recForm.recommendation_reason}
-                    onChange={(e) => setRecForm((f) => ({ ...f, recommendation_reason: e.target.value }))}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm" className="bg-navy text-white hover:bg-navy-light"
-                    disabled={!recForm.freelancer_id || recommendMutation.isPending}
-                    onClick={() => recommendMutation.mutate({ ...recForm, request_id: id })}
-                  >
-                    {recommendMutation.isPending ? "추가 중..." : "추가"}
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => setShowRecommendForm(false)}>취소</Button>
-                </div>
-                {recommendMutation.isError && (
-                  <p className="text-xs text-destructive">오류가 발생했습니다. 다시 시도해 주세요.</p>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {req.description && (
+          <Card>
+            <CardHeader><CardTitle className="text-sm text-muted-foreground font-medium">요청사항</CardTitle></CardHeader>
+            <CardContent><p className="text-sm leading-relaxed whitespace-pre-line">{req.description}</p></CardContent>
+          </Card>
+        )}
+
+        {recommendationReady && (
+          <Link href={`/customer/requests/${id}/recommendations`}>
+            <Button className="w-full gap-2 bg-navy text-white hover:bg-navy-light">
+              <Users className="h-4 w-4" />
+              추천 후보 확인하기
+            </Button>
+          </Link>
+        )}
+
+        {matchingInProgress ? (
+          <Card className="border-amber-200 bg-amber-50">
+            <CardContent className="pt-6 text-sm text-amber-800">
+              <p className="font-medium">후보를 찾고 있습니다</p>
+              <p className="mt-1 text-amber-700">요청 조건과 승인된 진행자 포트폴리오를 비교해 맞춤 후보를 추천합니다.</p>
+            </CardContent>
+          </Card>
+        ) : null}
       </div>
 
       <ConfirmModal
-        open={statusConfirm !== null}
-        onOpenChange={(o) => !o && setStatusConfirm(null)}
-        title="상태 변경"
-        description={`요청서 상태를 "${REQUEST_STATUSES.find((s) => s.value === statusConfirm)?.label}"으로 변경하시겠습니까?`}
-        confirmLabel="변경"
-        onConfirm={() => statusConfirm && statusMutation.mutate(statusConfirm)}
-        isLoading={statusMutation.isPending}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="요청서를 삭제할까요?"
+        description="삭제하면 요청서와 추천 후보, 미결제 상담 기록이 함께 삭제됩니다. 이 작업은 되돌릴 수 없습니다."
+        confirmLabel="요청서 삭제"
+        cancelLabel="유지하기"
+        variant="destructive"
+        isLoading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate()}
       />
     </div>
   );
