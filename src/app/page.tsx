@@ -59,7 +59,7 @@ const FEATURES = [
 
 const HOW_IT_WORKS = [
   { step: "01", title: "요청서 작성", desc: "일정·장소·행사 조건 입력" },
-  { step: "02", title: "AI 후보 추천", desc: "조건 기반 후보 빠른 비교" },
+  { step: "02", title: "AI 후보 추천", desc: "요청서와 진행자 데이터를 분석한 후보 비교" },
   { step: "03", title: "진행자와 고객 간 협의", desc: "견적·일정·진행 조건 조율" },
   { step: "04", title: "예약 확정", desc: "수락 후 행사 예약 완료" },
 ];

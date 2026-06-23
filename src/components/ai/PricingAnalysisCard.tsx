@@ -35,6 +35,17 @@ function ConfidenceLabel({ value }: { value: PricingAnalysis["confidence"] }) {
   return <span>{map[value] ?? "보통"}</span>;
 }
 
+function BudgetRealismLabel({ value }: { value: NonNullable<PricingAnalysis["budget_realism"]>["status"] }) {
+  const map = {
+    below_market: "예산 낮음",
+    within_market: "현실적",
+    above_market: "예산 여유",
+    unknown: "판단 보류",
+  } as const;
+
+  return <span>{map[value] ?? "판단 보류"}</span>;
+}
+
 function normalizeLineItem(item: unknown): PricingAnalysisLineItem | null {
   if (!item || typeof item !== "object") return null;
 
@@ -65,6 +76,15 @@ function normalizePricingPayload(payload?: PricingAnalysisPayload): PricingAnaly
       recommended_max: Number(analysis.recommended_max) || 0,
       recommended_center: Number(analysis.recommended_center) || 0,
       confidence: ["high", "medium", "low"].includes(analysis.confidence) ? analysis.confidence : "medium",
+      budget_realism: analysis.budget_realism && typeof analysis.budget_realism === "object"
+        ? {
+            status: ["below_market", "within_market", "above_market", "unknown"].includes(analysis.budget_realism.status)
+              ? analysis.budget_realism.status
+              : "unknown",
+            message: typeof analysis.budget_realism.message === "string" ? analysis.budget_realism.message : "",
+            recommended_action: typeof analysis.budget_realism.recommended_action === "string" ? analysis.budget_realism.recommended_action : "",
+          }
+        : undefined,
       assumptions: Array.isArray(analysis.assumptions) ? analysis.assumptions.filter((item): item is string => typeof item === "string") : [],
       caution_notes: Array.isArray(analysis.caution_notes) ? analysis.caution_notes.filter((item): item is string => typeof item === "string") : [],
       generated_at: typeof analysis.generated_at === "string" ? analysis.generated_at : new Date().toISOString(),
@@ -169,6 +189,23 @@ export function PricingAnalysisCard({ request }: { request: EventRequest }) {
                 권장 범위 {formatPrice(analysis.recommended_min)} ~ {formatPrice(analysis.recommended_max)} · 신뢰도 <ConfidenceLabel value={analysis.confidence} />
               </p>
             </div>
+
+            {analysis.budget_realism && (
+              <div className="rounded-xl border border-line bg-card p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-semibold">예산 현실성 판단</p>
+                  <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                    <BudgetRealismLabel value={analysis.budget_realism.status} />
+                  </span>
+                </div>
+                {analysis.budget_realism.message && (
+                  <p className="mt-2 text-muted-foreground">{analysis.budget_realism.message}</p>
+                )}
+                {analysis.budget_realism.recommended_action && (
+                  <p className="mt-1 text-xs text-muted-foreground">권장: {analysis.budget_realism.recommended_action}</p>
+                )}
+              </div>
+            )}
 
             {analysis.event_summary && (
               <div>

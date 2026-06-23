@@ -13,9 +13,18 @@ import { Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { EventRequest } from "@/types";
 
-type RequestCardItem = EventRequest & {
-  view_count?: number | null;
-};
+
+function getRecommendationStatus(req: EventRequest) {
+  if (["recommended", "consulting", "booked", "completed", "reviewed"].includes(req.status)) {
+    return { label: "후보 추천 완료", className: "bg-gold/15 text-gold" };
+  }
+
+  if (req.status === "recommending") {
+    return { label: "AI 추천 중", className: "bg-lavender/15 text-lavender" };
+  }
+
+  return { label: "후보 추천 준비중", className: "bg-muted text-muted-foreground" };
+}
 
 function getRequestSummary(req: EventRequest) {
   if (req.description?.trim()) return req.description.trim();
@@ -35,7 +44,7 @@ export default function CustomerRequestsPage() {
   });
 
   const result = data?.data;
-  const items: RequestCardItem[] = result?.data?.items ?? [];
+  const items: EventRequest[] = result?.data?.items ?? [];
   const pagination = result?.data?.pagination;
 
   return (
@@ -80,7 +89,14 @@ export default function CustomerRequestsPage() {
 
                   <div className="mt-auto flex items-center justify-between gap-3 pt-5 text-xs text-muted-foreground">
                     <span>{formatDate(req.created_at)}</span>
-                    <span>조회 {req.view_count ?? 0}</span>
+                    {(() => {
+                      const status = getRecommendationStatus(req);
+                      return (
+                        <span className={`rounded-full px-2.5 py-1 font-medium ${status.className}`}>
+                          {status.label}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </CardContent>
               </Card>

@@ -382,6 +382,8 @@ export interface PricingAnalysisLineItem {
   reason: string;
 }
 
+export type BudgetRealismStatus = "below_market" | "within_market" | "above_market" | "unknown";
+
 export interface PricingAnalysis {
   event_summary: string;
   line_items: PricingAnalysisLineItem[];
@@ -389,6 +391,11 @@ export interface PricingAnalysis {
   recommended_max: number;
   recommended_center: number;
   confidence: "high" | "medium" | "low";
+  budget_realism?: {
+    status: BudgetRealismStatus;
+    message: string;
+    recommended_action: string;
+  };
   assumptions: string[];
   caution_notes: string[];
   generated_at: string;

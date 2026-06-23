@@ -95,7 +95,7 @@ export default function RecommendationsPage({ params }: { params: { id: string }
         </Link>
         <div>
           <h1 className="text-2xl font-bold">추천 후보</h1>
-          <p className="text-muted-foreground text-sm">조건 기반 매칭으로 추천된 맞춤 진행자입니다</p>
+          <p className="text-muted-foreground text-sm">AI가 요청서, 진행자 프로필, 포트폴리오, 후기를 분석해 추천한 후보입니다</p>
         </div>
       </div>
 
