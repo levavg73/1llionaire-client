@@ -7,12 +7,22 @@ import { customerApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { RequestStatusBadge } from "@/components/common/StatusBadge";
 import { LoadingState, EmptyState, ErrorState } from "@/components/common/States";
 import { Pagination } from "@/components/common/Pagination";
-import { Plus, ChevronRight } from "lucide-react";
+import { Plus } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { EventRequest } from "@/types";
+
+type RequestCardItem = EventRequest & {
+  view_count?: number | null;
+};
+
+function getRequestSummary(req: EventRequest) {
+  if (req.description?.trim()) return req.description.trim();
+
+  const details = [req.region, req.venue, req.preferred_styles?.join(" · ")].filter(Boolean);
+  return details.length > 0 ? details.join(" · ") : "요청서 상세 내용을 확인해 주세요.";
+}
 
 export default function CustomerRequestsPage() {
   const [page, setPage] = useState(1);
@@ -25,15 +35,15 @@ export default function CustomerRequestsPage() {
   });
 
   const result = data?.data;
-  const items: EventRequest[] = result?.data?.items ?? [];
+  const items: RequestCardItem[] = result?.data?.items ?? [];
   const pagination = result?.data?.pagination;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="animate-fade-in">
+      <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-[-0.04em] sm:text-5xl">내 요청서 관리</h1>
-          <p className="mt-2 text-sm text-muted-foreground">섭외 요청서를 작성하고 현황을 확인하세요</p>
+          <h1 className="text-2xl font-bold">내 요청서</h1>
+          <p className="mt-1 text-sm text-muted-foreground">섭외 요청서를 작성하고 현황을 확인하세요</p>
         </div>
         <Link href="/customer/requests/new">
           <Button className="gap-2 bg-navy text-white hover:bg-navy-light">
@@ -53,23 +63,24 @@ export default function CustomerRequestsPage() {
       )}
 
       {items.length > 0 && (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {items.map((req) => (
-            <Link key={req.id} href={`/customer/requests/${req.id}`}>
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <RequestStatusBadge status={req.status} />
-                        <span className="text-xs text-muted-foreground">{formatDate(req.event_date)}</span>
-                      </div>
-                      <h2 className="truncate text-base font-semibold">{req.event_title}</h2>
-                      <p className="text-sm text-muted-foreground mt-0.5">
-                        {req.event_type} · {req.region}
-                      </p>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 mt-1" />
+            <Link key={req.id} href={`/customer/requests/${req.id}`} className="group block h-full">
+              <Card className="h-full cursor-pointer transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-lg">
+                <CardContent className="flex h-full flex-col p-5">
+                  <p className="mb-3 text-xs font-medium text-muted-foreground">{req.event_type}</p>
+
+                  <h2 className="line-clamp-2 min-h-[3rem] text-lg font-semibold leading-6 tracking-[-0.02em]">
+                    {req.event_title}
+                  </h2>
+
+                  <p className="mt-3 line-clamp-3 min-h-[3.75rem] text-sm leading-5 text-muted-foreground">
+                    {getRequestSummary(req)}
+                  </p>
+
+                  <div className="mt-auto flex items-center justify-between gap-3 pt-5 text-xs text-muted-foreground">
+                    <span>{formatDate(req.created_at)}</span>
+                    <span>조회 {req.view_count ?? 0}</span>
                   </div>
                 </CardContent>
               </Card>
