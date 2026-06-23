@@ -95,14 +95,14 @@ export default function RecommendationsPage({ params }: { params: { id: string }
         </Link>
         <div>
           <h1 className="text-2xl font-bold">추천 후보</h1>
-          <p className="text-muted-foreground text-sm">조건 기반 매칭과 관리자 검수를 거쳐 공개된 맞춤 진행자입니다</p>
+          <p className="text-muted-foreground text-sm">조건 기반 매칭으로 추천된 맞춤 진행자입니다</p>
         </div>
       </div>
 
       {isLoading && <LoadingState />}
       {isError && <ErrorState onRetry={() => refetch()} />}
       {!isLoading && !isError && recommendations.length === 0 && (
-        <EmptyState title="아직 공개된 추천 후보가 없습니다" description="관리자가 요청 조건, 포트폴리오, 후기 데이터를 검수한 뒤 후보를 공개합니다." />
+        <EmptyState title="아직 공개된 추천 후보가 없습니다" description="요청 조건, 포트폴리오, 후기 데이터를 기준으로 후보를 찾고 있습니다." />
       )}
 
       {bookingErrorMessage && (
