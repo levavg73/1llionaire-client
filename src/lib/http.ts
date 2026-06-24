@@ -75,8 +75,10 @@ function normalizeApiBaseUrl(value?: string | null) {
     .replace(/\/api$/i, "");
 }
 
-function getProcessEnv() {
-  return (globalThis as any).process?.env as Record<string, string | undefined> | undefined;
+function getProcessEnv(): Record<string, string | undefined> | undefined {
+  if (typeof process === "undefined") return undefined;
+
+  return process.env;
 }
 
 function getSameOriginBaseUrl() {
