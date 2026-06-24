@@ -9,7 +9,7 @@ import http, { toQueryParams } from "../http";
 
 export const customerApi = {
   createRequest: (data: unknown) =>
-    http.post<BackendResponse<EventRequest>>("/api/customer/requests", data),
+    http.post<BackendResponse<EventRequest>>("/api/customer/requests", data, { timeoutMs: 90000 }),
 
   getRequests: (params?: Record<string, unknown>) =>
     http.get<BackendListResponse<EventRequest>>("/api/customer/requests", {

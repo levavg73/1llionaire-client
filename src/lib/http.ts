@@ -10,6 +10,7 @@ interface RequestConfig {
   url: string;
   params?: QueryParams;
   data?: unknown;
+  timeoutMs?: number;
   _retried?: boolean;
 }
 
@@ -74,25 +75,31 @@ function normalizeApiBaseUrl(value?: string | null) {
     .replace(/\/api$/i, "");
 }
 
+function getProcessEnv() {
+  return (globalThis as any).process?.env as Record<string, string | undefined> | undefined;
+}
+
 function getSameOriginBaseUrl() {
   if (typeof window !== "undefined") return window.location.origin;
 
-  if (process.env.NEXT_PUBLIC_BASE_URL) {
-    return process.env.NEXT_PUBLIC_BASE_URL;
+  const env = getProcessEnv();
+  if (env?.NEXT_PUBLIC_BASE_URL) {
+    return env.NEXT_PUBLIC_BASE_URL;
   }
 
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
+  if (env?.VERCEL_URL) {
+    return `https://${env.VERCEL_URL}`;
   }
 
   return "http://localhost:3000";
 }
 
 function getServerApiBaseUrl() {
+  const env = getProcessEnv();
   return normalizeApiBaseUrl(
-    process.env.NEXT_PUBLIC_API_DIRECT_BASE_URL ||
-      process.env.NEXT_PUBLIC_API_BASE_URL ||
-      process.env.API_PROXY_TARGET
+    env?.NEXT_PUBLIC_API_DIRECT_BASE_URL ||
+      env?.NEXT_PUBLIC_API_BASE_URL ||
+      env?.API_PROXY_TARGET
   );
 }
 
@@ -101,7 +108,7 @@ function getBrowserDirectBaseUrl() {
   // Next.js /api rewrite. This keeps auth cookies first-party in Lighthouse
   // and in modern browsers. Set NEXT_PUBLIC_API_DIRECT_BASE_URL only for a
   // deliberate local/debug bypass.
-  return normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_DIRECT_BASE_URL);
+  return normalizeApiBaseUrl(getProcessEnv()?.NEXT_PUBLIC_API_DIRECT_BASE_URL);
 }
 
 function buildUrl(path: string, params?: QueryParams) {
@@ -205,7 +212,8 @@ function getErrorMessage(data: unknown) {
 
 async function request<T = unknown>(config: RequestConfig): Promise<HttpResponse<T>> {
   const controller = new AbortController();
-  const timeoutId = globalThis.setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+  const timeoutMs = config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const timeoutId = globalThis.setTimeout(() => controller.abort(), timeoutMs);
 
   const headers = new Headers({ Accept: "application/json" });
   let body: BodyInit | undefined;
@@ -276,11 +284,11 @@ const http = {
   get: <T = unknown>(url: string, options?: { params?: QueryParams }) =>
     request<T>({ method: "GET", url, params: options?.params }),
 
-  post: <T = unknown>(url: string, data?: unknown) =>
-    request<T>({ method: "POST", url, data }),
+  post: <T = unknown>(url: string, data?: unknown, options?: { timeoutMs?: number }) =>
+    request<T>({ method: "POST", url, data, timeoutMs: options?.timeoutMs }),
 
-  patch: <T = unknown>(url: string, data?: unknown) =>
-    request<T>({ method: "PATCH", url, data }),
+  patch: <T = unknown>(url: string, data?: unknown, options?: { timeoutMs?: number }) =>
+    request<T>({ method: "PATCH", url, data, timeoutMs: options?.timeoutMs }),
 
   delete: <T = unknown>(url: string, data?: unknown) =>
     request<T>({ method: "DELETE", url, data }),
