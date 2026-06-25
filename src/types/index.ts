@@ -401,6 +401,8 @@ export interface PricingAnalysis {
   generated_at: string;
 }
 
+export type PricingAnalysisSource = "gemini" | "market_fallback";
+
 export interface PricingMarketData {
   sample_count: number;
   avg_price_min: number;
@@ -408,6 +410,7 @@ export interface PricingMarketData {
   market_min: number;
   market_max: number;
   avg_rating: string;
+  analysis_source?: PricingAnalysisSource;
 }
 
 export interface FreelancerReview {

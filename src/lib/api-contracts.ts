@@ -234,12 +234,28 @@ export interface PricingAnalysisRequest {
   budget_min?: number;
   budget_max?: number;
   duration_hours?: number;
+  event_date?: string;
+  start_time?: string;
+  end_time?: string;
+  venue?: string;
+  description?: string;
+  preferred_styles?: string[];
+  required_language?: string;
+  script_required?: boolean;
+  rehearsal_required?: boolean;
+  travel_required?: boolean;
   request_id?: string;
 }
 
 export interface PricingAnalysisResult {
   analysis: PricingAnalysis;
   market_data: PricingMarketData;
+  diagnostic?: {
+    analysis_source: PricingMarketData["analysis_source"];
+    gemini_status?: number;
+    gemini_provider_status?: string;
+    gemini_error_message?: string;
+  };
 }
 
 export interface FreelancerReviewCreatePayload {

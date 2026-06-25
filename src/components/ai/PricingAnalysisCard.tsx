@@ -46,6 +46,12 @@ function BudgetRealismLabel({ value }: { value: NonNullable<PricingAnalysis["bud
   return <span>{map[value] ?? "판단 보류"}</span>;
 }
 
+function getAnalysisSourceLabel(source?: PricingMarketData["analysis_source"]) {
+  if (source === "gemini") return "Gemini 분석";
+  if (source === "market_fallback") return "시장 데이터 산식";
+  return "분석 대기";
+}
+
 function normalizeLineItem(item: unknown): PricingAnalysisLineItem | null {
   if (!item || typeof item !== "object") return null;
 
@@ -107,12 +113,23 @@ export function PricingAnalysisCard({ request }: { request: EventRequest }) {
         budget_min: request.budget_min,
         budget_max: request.budget_max,
         duration_hours: getDurationHours(request.start_time, request.end_time),
+        event_date: request.event_date,
+        start_time: request.start_time,
+        end_time: request.end_time,
+        venue: request.venue || undefined,
+        description: request.description || undefined,
+        preferred_styles: request.preferred_styles,
+        required_language: request.required_language || undefined,
+        script_required: request.script_required,
+        rehearsal_required: request.rehearsal_required,
+        travel_required: request.travel_required,
         request_id: request.id,
       }),
   });
 
   const result = normalizePricingPayload(mutation.data?.data?.data);
   const analysis = result?.analysis;
+  const analysisSource = result?.market_data?.analysis_source;
   const lineItemsTotal = analysis?.line_items.reduce((sum, item) => sum + item.estimated_price, 0) ?? 0;
 
   const applyBudgetMutation = useMutation({
@@ -149,9 +166,16 @@ export function PricingAnalysisCard({ request }: { request: EventRequest }) {
   return (
     <Card className="border-lavender/30 bg-lavender-light/30">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Sparkles className="h-4 w-4 text-lavender" />
-          AI 단가 분석
+        <CardTitle className="flex items-center justify-between gap-3 text-base">
+          <span className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-lavender" />
+            AI 단가 분석
+          </span>
+          {analysis && (
+            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+              {getAnalysisSourceLabel(analysisSource)}
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
@@ -180,6 +204,12 @@ export function PricingAnalysisCard({ request }: { request: EventRequest }) {
 
         {analysis && (
           <div className="space-y-4">
+            {analysisSource === "market_fallback" && (
+              <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                현재 결과는 Gemini 응답이 아니라 플랫폼 시장 데이터 기반 임시 산식입니다. 서버 로그의 <code>[ai-pricing-analysis-fallback]</code>와 관리자용 <code>/api/ai/health</code>로 Gemini 연결 상태를 확인해 주세요.
+              </p>
+            )}
+
             <div className="rounded-xl border border-line bg-card p-4">
               <p className="text-xs text-muted-foreground">추천 중심 단가</p>
               <p className="mt-1 text-2xl font-extrabold text-navy">
@@ -218,7 +248,7 @@ export function PricingAnalysisCard({ request }: { request: EventRequest }) {
               <div>
                 <p className="font-semibold">시장 데이터</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  유사 프리랜서 {result.market_data.sample_count}명 기준 · 평균 {formatPrice(result.market_data.avg_price_min)} ~ {formatPrice(result.market_data.avg_price_max)}
+                  {getAnalysisSourceLabel(result.market_data.analysis_source)} · 유사 프리랜서 {result.market_data.sample_count}명 기준 · 평균 {formatPrice(result.market_data.avg_price_min)} ~ {formatPrice(result.market_data.avg_price_max)}
                   {result.market_data.market_min > 0 || result.market_data.market_max > 0
                     ? ` · 전체 범위 ${formatPrice(result.market_data.market_min)} ~ ${formatPrice(result.market_data.market_max)}`
                     : ""}
