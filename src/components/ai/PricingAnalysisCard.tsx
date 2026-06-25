@@ -24,6 +24,12 @@ function getDurationHours(start?: string, end?: string) {
 type PricingAnalysisPayload = {
   analysis: PricingAnalysis;
   market_data?: PricingMarketData | null;
+  diagnostic?: {
+    analysis_source?: PricingMarketData["analysis_source"];
+    gemini_status?: number;
+    gemini_provider_status?: string;
+    gemini_error_message?: string;
+  } | null;
 };
 
 function ConfidenceLabel({ value }: { value: PricingAnalysis["confidence"] }) {
@@ -96,6 +102,7 @@ function normalizePricingPayload(payload?: PricingAnalysisPayload): PricingAnaly
       generated_at: typeof analysis.generated_at === "string" ? analysis.generated_at : new Date().toISOString(),
     },
     market_data: payload.market_data ?? null,
+    diagnostic: payload.diagnostic ?? null,
   };
 }
 
@@ -205,9 +212,17 @@ export function PricingAnalysisCard({ request }: { request: EventRequest }) {
         {analysis && (
           <div className="space-y-4">
             {analysisSource === "market_fallback" && (
-              <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                현재 결과는 Gemini 응답이 아니라 플랫폼 시장 데이터 기반 임시 산식입니다. 서버 로그의 <code>[ai-pricing-analysis-fallback]</code>와 관리자용 <code>/api/ai/health</code>로 Gemini 연결 상태를 확인해 주세요.
-              </p>
+              <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 space-y-1">
+                <p>현재 결과는 Gemini 응답이 아니라 플랫폼 시장 데이터 기반 임시 산식입니다.</p>
+                {result?.diagnostic?.gemini_error_message && (
+                  <p className="font-medium">
+                    원인: {result.diagnostic.gemini_error_message}
+                    {result.diagnostic.gemini_status ? ` (HTTP ${result.diagnostic.gemini_status})` : ""}
+                    {result.diagnostic.gemini_provider_status ? ` [${result.diagnostic.gemini_provider_status}]` : ""}
+                  </p>
+                )}
+                <p>관리자용 <code>/api/ai/health</code>로 Gemini 연결 상태를 확인해 주세요.</p>
+              </div>
             )}
 
             <div className="rounded-xl border border-line bg-card p-4">
