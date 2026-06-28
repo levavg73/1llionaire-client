@@ -56,14 +56,24 @@ const PUBLIC_AUTH_BOOTSTRAP_PATHS = new Set([
   "/oauth-role",
 ]);
 
-function shouldBootstrapAuth(pathname: string | null): boolean {
-  if (typeof window !== "undefined" && window.location.search.includes("login_success=1")) {
-    return true;
-  }
+function isPublicDeferredAuthPath(pathname: string | null): boolean {
+  if (!pathname) return false;
 
-  if (!pathname) return true;
-  if (PUBLIC_AUTH_BOOTSTRAP_PATHS.has(pathname)) return false;
-  return true;
+  return (
+    pathname === "/" ||
+    pathname === "/freelancers" ||
+    pathname.startsWith("/freelancers/") ||
+    pathname === "/reviews"
+  );
+}
+
+function shouldSkipAuthBootstrap(pathname: string | null): boolean {
+  if (!pathname) return false;
+  return PUBLIC_AUTH_BOOTSTRAP_PATHS.has(pathname);
+}
+
+function shouldForceAuthBootstrap(): boolean {
+  return typeof window !== "undefined" && window.location.search.includes("login_success=1");
 }
 
 function AuthProvider({ children }: { children: ReactNode }) {
@@ -74,11 +84,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const [isServerWaking, setIsServerWaking] = useState(false);
 
   const applyOAuthRedirect = useCallback((currentUser: User | null) => {
-    if (
-      !currentUser ||
-      typeof window === "undefined" ||
-      !window.location.search.includes("login_success=1")
-    ) {
+    if (!currentUser || !shouldForceAuthBootstrap()) {
       return;
     }
 
@@ -107,7 +113,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
     window.addEventListener("auth:unauthorized", handleUnauthorized);
 
-    if (!shouldBootstrapAuth(pathname)) {
+    if (shouldSkipAuthBootstrap(pathname)) {
       setIsLoading(false);
       setIsServerWaking(false);
 
@@ -126,11 +132,20 @@ function AuthProvider({ children }: { children: ReactNode }) {
       };
     }
 
+    const deferAuth = isPublicDeferredAuthPath(pathname) && !shouldForceAuthBootstrap();
+
+    if (deferAuth) {
+      setIsLoading(false);
+      setIsServerWaking(false);
+    }
+
     const bootstrap = async () => {
-      setIsLoading(true);
+      if (!deferAuth) {
+        setIsLoading(true);
+      }
 
       const wakeTimer = window.setTimeout(() => {
-        if (mounted) setIsServerWaking(true);
+        if (mounted && !deferAuth) setIsServerWaking(true);
       }, 3000);
 
       try {

@@ -23,12 +23,6 @@ export async function loadCurrentUser(): Promise<User | null> {
     const res = await authApi.me();
     return getAuthUser(res.data);
   } catch {
-    try {
-      await authApi.refresh();
-      const retry = await authApi.me();
-      return getAuthUser(retry.data);
-    } catch {
-      return null;
-    }
+    return null;
   }
 }
