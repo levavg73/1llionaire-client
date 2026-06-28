@@ -77,14 +77,16 @@ function normalizeApiBaseUrl(value?: string | null) {
 
 function getProcessEnv(): Record<string, string | undefined> | undefined {
   if (typeof process === "undefined") return undefined;
-
   return process.env;
 }
 
 function getSameOriginBaseUrl() {
-  if (typeof window !== "undefined") return window.location.origin;
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
 
   const env = getProcessEnv();
+
   if (env?.NEXT_PUBLIC_BASE_URL) {
     return env.NEXT_PUBLIC_BASE_URL;
   }
@@ -98,19 +100,12 @@ function getSameOriginBaseUrl() {
 
 function getServerApiBaseUrl() {
   const env = getProcessEnv();
-  return normalizeApiBaseUrl(
-    env?.NEXT_PUBLIC_API_DIRECT_BASE_URL ||
-      env?.NEXT_PUBLIC_API_BASE_URL ||
-      env?.API_PROXY_TARGET
-  );
-}
 
-function getBrowserDirectBaseUrl() {
-  // Browser requests should stay on the frontend origin and pass through the
-  // Next.js /api rewrite. This keeps auth cookies first-party in Lighthouse
-  // and in modern browsers. Set NEXT_PUBLIC_API_DIRECT_BASE_URL only for a
-  // deliberate local/debug bypass.
-  return normalizeApiBaseUrl(getProcessEnv()?.NEXT_PUBLIC_API_DIRECT_BASE_URL);
+  return normalizeApiBaseUrl(
+    env?.API_PROXY_TARGET ||
+      env?.NEXT_PUBLIC_API_BASE_URL ||
+      env?.NEXT_PUBLIC_API_DIRECT_BASE_URL
+  );
 }
 
 function buildUrl(path: string, params?: QueryParams) {
@@ -121,8 +116,19 @@ function buildUrl(path: string, params?: QueryParams) {
   }
 
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  const directBaseURL =
-    typeof window === "undefined" ? getServerApiBaseUrl() : getBrowserDirectBaseUrl();
+
+  /**
+   * 중요:
+   * 브라우저에서는 항상 같은 origin의 /api로 요청합니다.
+   *
+   * 이유:
+   * - 로그인 쿠키를 프론트 도메인의 first-party cookie로 유지해야 합니다.
+   * - 브라우저에서 서버 도메인으로 직접 요청하면 로그인 직후 /me, 대시보드 API에서
+   *   쿠키가 안정적으로 붙지 않아 /login으로 튕길 수 있습니다.
+   *
+   * 서버 컴포넌트/빌드 환경에서만 실제 API 서버 주소를 사용합니다.
+   */
+  const directBaseURL = typeof window === "undefined" ? getServerApiBaseUrl() : "";
   const base = directBaseURL || getSameOriginBaseUrl();
   const url = new URL(normalizedPath, base);
 
