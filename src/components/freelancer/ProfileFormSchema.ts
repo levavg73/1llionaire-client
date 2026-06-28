@@ -1,8 +1,19 @@
 import { z } from "zod";
 
 export const MAX_PROFILE_IMAGE_SIZE = 5 * 1024 * 1024;
+export const MAX_SIGNATURE_VOICE_SIZE = 10 * 1024 * 1024;
 
 export const ALLOWED_PROFILE_IMAGE_TYPES: string[] = ["image/jpeg", "image/png"];
+export const ALLOWED_SIGNATURE_VOICE_TYPES: string[] = [
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/wav",
+  "audio/wave",
+  "audio/x-wav",
+  "audio/mp4",
+  "audio/x-m4a",
+  "audio/webm",
+];
 
 export const LANGUAGE_OPTIONS = [
   "한국어",
@@ -99,6 +110,7 @@ export const profileFormSchema = z
       .int("최대 가격은 정수로 입력해 주세요.")
       .min(0, "최대 가격은 0원 이상이어야 합니다."),
     profile_image_path: z.string().optional(),
+    signature_voice_path: z.string().optional(),
     languages: optionalNonEmptyStringArray,
     script_writing_available: z.boolean().default(false),
     rehearsal_available: z.boolean().default(false),

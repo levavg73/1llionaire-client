@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
   Star, MapPin, Clock, Globe,
-  FileText, Activity, Plane, ChevronLeft, CalendarDays,
+  FileText, Activity, Plane, ChevronLeft, CalendarDays, Volume2,
 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { isSafeHttpsUrl } from "@/lib/validation";
@@ -85,6 +85,9 @@ export default async function FreelancerDetailPage({
   const reviews = shouldShowReviews ? await getReviews(id) : [];
   const reviewsHref = `/freelancers/${f.id}?reviews=1#reviews`;
   const requestHref = `/customer/requests/new?freelancerId=${f.id}`;
+  const safeSignatureVoiceUrl = f.signature_voice_url && isSafeHttpsUrl(f.signature_voice_url)
+    ? f.signature_voice_url
+    : undefined;
 
   const ActionButtons = ({ className = "" }: { className?: string }) => (
     <div className={`grid gap-4 ${className}`}>
@@ -145,6 +148,27 @@ export default async function FreelancerDetailPage({
             <Card>
               <CardHeader><CardTitle className="text-base">소개</CardTitle></CardHeader>
               <CardContent><p className="text-sm leading-relaxed whitespace-pre-line">{f.bio}</p></CardContent>
+            </Card>
+          )}
+
+          {/* 시그니처 보이스 */}
+          {safeSignatureVoiceUrl && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Volume2 className="h-4 w-4 text-lavender" />
+                  30초 시그니처 보이스
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <audio
+                  controls
+                  preload="none"
+                  src={safeSignatureVoiceUrl}
+                  className="w-full"
+                  aria-label={`${f.display_name ?? "진행자"} 시그니처 보이스 재생`}
+                />
+              </CardContent>
             </Card>
           )}
 

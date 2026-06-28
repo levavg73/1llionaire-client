@@ -3,8 +3,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { publicApi } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
-import { Star, MapPin, SlidersHorizontal, X, MessageSquareText, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, MapPin, SlidersHorizontal, X, MessageSquareText, ChevronLeft, ChevronRight, Volume2 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
+import { isSafeHttpsUrl } from "@/lib/validation";
 import { FreelancerProfile, Pagination } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -322,66 +323,88 @@ export default async function FreelancersPage({
       ) : (
         <>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {freelancers.map((f) => (
-              <Link key={f.id} href={`/freelancers/${f.id}`}>
-                <article className="rounded-xl border bg-card hover:shadow-lg transition-all duration-200 overflow-hidden group">
-                  <div className="relative h-48 bg-muted overflow-hidden">
-                    {f.profile_image_url ? (
-                      <Image
-                        src={f.profile_image_url}
-                        alt={f.display_name || "진행자 프로필"}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-navy/10 to-navy/5">
-                        <span className="text-5xl font-bold text-navy/20">
-                          {(f.display_name || "?")[0]}
-                        </span>
+            {freelancers.map((f) => {
+              const safeSignatureVoiceUrl = f.signature_voice_url && isSafeHttpsUrl(f.signature_voice_url)
+                ? f.signature_voice_url
+                : undefined;
+
+              return (
+                <article key={f.id} className="overflow-hidden rounded-xl border bg-card transition-all duration-200 hover:shadow-lg">
+                  <Link href={`/freelancers/${f.id}`} className="block group">
+                    <div className="relative h-48 bg-muted overflow-hidden">
+                      {f.profile_image_url ? (
+                        <Image
+                          src={f.profile_image_url}
+                          alt={f.display_name || "진행자 프로필"}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-navy/10 to-navy/5">
+                          <span className="text-5xl font-bold text-navy/20">
+                            {(f.display_name || "?")[0]}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <h2 className="font-semibold truncate">{f.display_name}</h2>
+                        {f.avg_rating && (
+                          <span className="flex items-center gap-0.5 text-sm font-medium shrink-0">
+                            <Star className="h-3.5 w-3.5 fill-gold text-gold" />
+                            {f.avg_rating.toFixed(1)}
+                          </span>
+                        )}
                       </div>
-                    )}
-                  </div>
+                      <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{f.headline}</p>
 
-                  <div className="p-4">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h2 className="font-semibold truncate">{f.display_name}</h2>
-                      {f.avg_rating && (
-                        <span className="flex items-center gap-0.5 text-sm font-medium shrink-0">
-                          <Star className="h-3.5 w-3.5 fill-gold text-gold" />
-                          {f.avg_rating.toFixed(1)}
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {f.categories.slice(0, 2).map((c) => (
+                          <Badge key={c} variant="secondary" className="text-xs">{c}</Badge>
+                        ))}
+                        {f.languages.slice(0, 2).map((language) => (
+                          <Badge key={language} variant="outline" className="text-xs">{language}</Badge>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />{f.region}
                         </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{f.headline}</p>
+                        {f.base_price_min && (
+                          <span className="font-medium text-foreground">
+                            {formatPrice(f.base_price_min)}~
+                          </span>
+                        )}
+                      </div>
 
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {f.categories.slice(0, 2).map((c) => (
-                        <Badge key={c} variant="secondary" className="text-xs">{c}</Badge>
-                      ))}
-                      {f.languages.slice(0, 2).map((language) => (
-                        <Badge key={language} variant="outline" className="text-xs">{language}</Badge>
-                      ))}
+                      <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
+                        <MessageSquareText className="h-3 w-3" />
+                        <span>후기 {f.review_count ?? 0}개</span>
+                      </div>
                     </div>
+                  </Link>
 
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />{f.region}
-                      </span>
-                      {f.base_price_min && (
-                        <span className="font-medium text-foreground">
-                          {formatPrice(f.base_price_min)}~
-                        </span>
-                      )}
+                  {safeSignatureVoiceUrl && (
+                    <div className="border-t border-line bg-surface/50 p-3">
+                      <div className="mb-2 flex items-center gap-1.5 text-xs font-bold text-text">
+                        <Volume2 className="h-3.5 w-3.5 text-lavender" />
+                        <span>30초 시그니처 보이스</span>
+                      </div>
+                      <audio
+                        controls
+                        preload="none"
+                        src={safeSignatureVoiceUrl}
+                        className="w-full"
+                        aria-label={`${f.display_name ?? "진행자"} 시그니처 보이스 재생`}
+                      />
                     </div>
-
-                    <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
-                      <MessageSquareText className="h-3 w-3" />
-                      <span>후기 {f.review_count ?? 0}개</span>
-                    </div>
-                  </div>
+                  )}
                 </article>
-              </Link>
-            ))}
+              );
+            })}
           </div>
 
           <PaginationNav pagination={pagination} searchParams={normalizedSearchParams} />

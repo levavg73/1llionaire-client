@@ -4,7 +4,7 @@ import { useEffect, useState, type ChangeEvent, type KeyboardEvent } from "react
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Trash2, X } from "lucide-react";
+import { Mic2, Trash2, X } from "lucide-react";
 
 import { freelancerApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
@@ -19,7 +19,9 @@ import { FreelancerProfile } from "@/types";
 
 import {
   MAX_PROFILE_IMAGE_SIZE,
+  MAX_SIGNATURE_VOICE_SIZE,
   ALLOWED_PROFILE_IMAGE_TYPES,
+  ALLOWED_SIGNATURE_VOICE_TYPES,
   LANGUAGE_OPTIONS,
   CATEGORY_OPTIONS,
   STYLE_OPTIONS,
@@ -134,6 +136,10 @@ export default function FreelancerProfilePage() {
   const [profileImagePreview, setProfileImagePreview] = useState("");
   const [profileImageError, setProfileImageError] = useState("");
   const [profileImageInputKey, setProfileImageInputKey] = useState(0);
+  const [selectedSignatureVoiceFile, setSelectedSignatureVoiceFile] = useState<File | null>(null);
+  const [signatureVoicePreview, setSignatureVoicePreview] = useState("");
+  const [signatureVoiceError, setSignatureVoiceError] = useState("");
+  const [signatureVoiceInputKey, setSignatureVoiceInputKey] = useState(0);
   const [customLanguage, setCustomLanguage] = useState("");
   const [customCategory, setCustomCategory] = useState("");
   const [customStyle, setCustomStyle] = useState("");
@@ -164,6 +170,7 @@ export default function FreelancerProfilePage() {
       script_writing_available: false,
       rehearsal_available: false,
       travel_available: false,
+      signature_voice_path: "",
     },
   });
 
@@ -187,6 +194,7 @@ export default function FreelancerProfilePage() {
       base_price_min: profile.base_price_min,
       base_price_max: profile.base_price_max,
       profile_image_path: profile.profile_image_path ?? "",
+      signature_voice_path: profile.signature_voice_path ?? "",
       languages: profile.languages ?? [],
       script_writing_available: profile.script_writing_available,
       rehearsal_available: profile.rehearsal_available,
@@ -197,6 +205,10 @@ export default function FreelancerProfilePage() {
     setSelectedProfileImageFile(null);
     setProfileImageError("");
     setProfileImageInputKey((key) => key + 1);
+    setSignatureVoicePreview(profile.signature_voice_url ?? "");
+    setSelectedSignatureVoiceFile(null);
+    setSignatureVoiceError("");
+    setSignatureVoiceInputKey((key) => key + 1);
   }, [profile, reset]);
 
   const isNew = profile?.status === "draft";
@@ -204,10 +216,16 @@ export default function FreelancerProfilePage() {
   const mutation = useMutation({
     mutationFn: async (values: FormValues) => {
       let profileImagePath = values.profile_image_path;
+      let signatureVoicePath = values.signature_voice_path;
 
       if (selectedProfileImageFile) {
         const uploadRes = await freelancerApi.uploadProfileImage(selectedProfileImageFile);
         profileImagePath = uploadRes.data.data.path;
+      }
+
+      if (selectedSignatureVoiceFile) {
+        const uploadRes = await freelancerApi.uploadSignatureVoice(selectedSignatureVoiceFile);
+        signatureVoicePath = uploadRes.data.data.path;
       }
 
       if (!profileImagePath) {
@@ -225,6 +243,7 @@ export default function FreelancerProfilePage() {
         styles: values.styles ?? [],
         available_regions: values.available_regions ?? [],
         profile_image_path: profileImagePath,
+        signature_voice_path: signatureVoicePath || undefined,
       };
 
       return isNew
@@ -233,7 +252,9 @@ export default function FreelancerProfilePage() {
     },
     onSuccess: () => {
       setSelectedProfileImageFile(null);
+      setSelectedSignatureVoiceFile(null);
       setProfileImageInputKey((key) => key + 1);
+      setSignatureVoiceInputKey((key) => key + 1);
       queryClient.invalidateQueries({ queryKey: queryKeys.freelancerProfile });
       queryClient.invalidateQueries({ queryKey: queryKeys.publicFreelancers });
     },
@@ -247,6 +268,19 @@ export default function FreelancerProfilePage() {
       setProfileImageError("");
       setProfileImageInputKey((key) => key + 1);
       setValue("profile_image_path", "", { shouldDirty: true, shouldValidate: true });
+      queryClient.invalidateQueries({ queryKey: queryKeys.freelancerProfile });
+      queryClient.invalidateQueries({ queryKey: queryKeys.publicFreelancers });
+    },
+  });
+
+  const deleteSignatureVoiceMutation = useMutation({
+    mutationFn: () => freelancerApi.deleteSignatureVoice(),
+    onSuccess: () => {
+      setSelectedSignatureVoiceFile(null);
+      setSignatureVoicePreview("");
+      setSignatureVoiceError("");
+      setSignatureVoiceInputKey((key) => key + 1);
+      setValue("signature_voice_path", "", { shouldDirty: true, shouldValidate: true });
       queryClient.invalidateQueries({ queryKey: queryKeys.freelancerProfile });
       queryClient.invalidateQueries({ queryKey: queryKeys.publicFreelancers });
     },
@@ -300,6 +334,54 @@ export default function FreelancerProfilePage() {
     deleteProfileImageMutation.mutate();
   };
 
+  const handleSignatureVoiceChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    setSignatureVoiceError("");
+
+    if (!file) {
+      setSelectedSignatureVoiceFile(null);
+      return;
+    }
+
+    if (!ALLOWED_SIGNATURE_VOICE_TYPES.includes(file.type)) {
+      setSelectedSignatureVoiceFile(null);
+      setSignatureVoiceError("시그니처 보이스는 MP3, WAV, M4A, WEBM 오디오 파일만 업로드할 수 있습니다.");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_SIGNATURE_VOICE_SIZE) {
+      setSelectedSignatureVoiceFile(null);
+      setSignatureVoiceError("시그니처 보이스는 10MB 이하만 업로드할 수 있습니다.");
+      event.target.value = "";
+      return;
+    }
+
+    setSelectedSignatureVoiceFile(file);
+    setSignatureVoicePreview(URL.createObjectURL(file));
+    setValue("signature_voice_path", profile?.signature_voice_path ?? "", { shouldDirty: true });
+  };
+
+  const handleSignatureVoiceRemove = () => {
+    setSignatureVoiceError("");
+
+    if (selectedSignatureVoiceFile) {
+      setSelectedSignatureVoiceFile(null);
+      setSignatureVoicePreview(profile?.signature_voice_url ?? "");
+      setSignatureVoiceInputKey((key) => key + 1);
+      setValue("signature_voice_path", profile?.signature_voice_path ?? "", { shouldDirty: false });
+      return;
+    }
+
+    if (!profile?.signature_voice_path) {
+      setSignatureVoicePreview("");
+      setValue("signature_voice_path", "", { shouldDirty: true, shouldValidate: true });
+      return;
+    }
+
+    deleteSignatureVoiceMutation.mutate();
+  };
+
   const toggleValue = (fieldName: MultiValueFieldName, selectedValues: string[], value: string) => {
     const exists = selectedValues.includes(value);
     const next = exists
@@ -328,7 +410,7 @@ export default function FreelancerProfilePage() {
   if (isLoading) return <LoadingState />;
   if (isError) return <ErrorState onRetry={() => refetch()} />;
 
-  const isSaving = mutation.isPending || deleteProfileImageMutation.isPending;
+  const isSaving = mutation.isPending || deleteProfileImageMutation.isPending || deleteSignatureVoiceMutation.isPending;
 
   return (
     <div className="animate-fade-in max-w-2xl">
@@ -368,18 +450,27 @@ export default function FreelancerProfilePage() {
         </p>
       )}
 
-      {(mutation.isError || deleteProfileImageMutation.isError) && (
+      {deleteSignatureVoiceMutation.isSuccess && (
+        <p className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          시그니처 보이스가 삭제되었습니다. 업로드하지 않으면 진행자 찾기 페이지에 재생 플레이어가 표시되지 않습니다.
+        </p>
+      )}
+
+      {(mutation.isError || deleteProfileImageMutation.isError || deleteSignatureVoiceMutation.isError) && (
         <p className="mb-4 rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">
           {mutation.error instanceof Error
             ? mutation.error.message
             : deleteProfileImageMutation.error instanceof Error
               ? deleteProfileImageMutation.error.message
-              : "요청 처리에 실패했습니다."}
+              : deleteSignatureVoiceMutation.error instanceof Error
+                ? deleteSignatureVoiceMutation.error.message
+                : "요청 처리에 실패했습니다."}
         </p>
       )}
 
       <form onSubmit={handleSubmit((values) => mutation.mutate(values))} noValidate>
         <input type="hidden" {...register("profile_image_path")} />
+        <input type="hidden" {...register("signature_voice_path")} />
 
         <Card className="mb-4">
           <CardHeader>
@@ -461,6 +552,47 @@ export default function FreelancerProfilePage() {
               </p>
               {profileImageError && <p className="text-xs text-destructive">{profileImageError}</p>}
               {errors.profile_image_path && <p className="text-xs text-destructive">{errors.profile_image_path.message}</p>}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="signature_voice">30초 시그니처 보이스</Label>
+              {signatureVoicePreview ? (
+                <div className="rounded-xl border border-line bg-surface p-3">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-sm font-bold text-text">
+                      <Mic2 className="h-4 w-4 text-lavender" />
+                      <span>등록된 보이스 샘플</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSignatureVoiceRemove}
+                      disabled={isSaving}
+                      className="gap-1.5"
+                    >
+                      {selectedSignatureVoiceFile ? <X className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
+                      {selectedSignatureVoiceFile ? "선택 취소" : "보이스 삭제"}
+                    </Button>
+                  </div>
+                  <audio controls preload="none" src={signatureVoicePreview} className="w-full" />
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-line bg-muted p-4 text-xs text-muted-foreground">
+                  아직 시그니처 보이스가 없습니다. 업로드하지 않으면 진행자 찾기 페이지에 재생 플레이어가 표시되지 않습니다.
+                </div>
+              )}
+              <Input
+                key={signatureVoiceInputKey}
+                id="signature_voice"
+                type="file"
+                accept="audio/mpeg,audio/mp3,audio/wav,audio/wave,audio/x-wav,audio/mp4,audio/x-m4a,audio/webm"
+                onChange={handleSignatureVoiceChange}
+              />
+              <p className="text-xs text-muted-foreground">
+                30초 내외의 음성 샘플을 권장합니다. MP3, WAV, M4A, WEBM 파일을 최대 10MB까지 업로드할 수 있습니다.
+              </p>
+              {signatureVoiceError && <p className="text-xs text-destructive">{signatureVoiceError}</p>}
             </div>
           </CardContent>
         </Card>
@@ -583,7 +715,7 @@ export default function FreelancerProfilePage() {
           type="submit"
           className="w-full bg-navy text-white hover:bg-navy-light"
           size="lg"
-          disabled={(!isDirty && !isNew && !selectedProfileImageFile) || isSaving}
+          disabled={(!isDirty && !isNew && !selectedProfileImageFile && !selectedSignatureVoiceFile) || isSaving}
         >
           {isSaving ? "처리 중..." : isNew ? "등록 신청하기" : "프로필 저장"}
         </Button>

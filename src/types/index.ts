@@ -71,6 +71,8 @@ export interface FreelancerProfileSummary {
   display_name?: string;
   profile_image_url?: string | null;
   profile_image_path?: string | null;
+  signature_voice_url?: string | null;
+  signature_voice_path?: string | null;
   headline?: string;
   status: FreelancerStatus;
   avg_rating?: number;
@@ -93,6 +95,8 @@ export interface FreelancerProfile {
   display_name?: string;
   profile_image_url?: string | null;
   profile_image_path?: string | null;
+  signature_voice_url?: string | null;
+  signature_voice_path?: string | null;
   headline?: string;
   bio?: string;
   region?: string;

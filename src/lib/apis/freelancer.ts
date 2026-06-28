@@ -32,6 +32,19 @@ export const freelancerApi = {
   deleteProfileImage: () =>
     http.delete<BackendResponse<null>>("/api/freelancer/profile-image"),
 
+  uploadSignatureVoice: (file: File) => {
+    const formData = new FormData();
+    formData.append("voice", file);
+
+    return http.post<BackendResponse<{ url: string | null; path: string }>>(
+      "/api/freelancer/signature-voice",
+      formData
+    );
+  },
+
+  deleteSignatureVoice: () =>
+    http.delete<BackendResponse<null>>("/api/freelancer/signature-voice"),
+
   createPortfolio: (data: unknown) =>
     http.post<BackendResponse<Portfolio>>("/api/freelancer/portfolio", data),
 
