@@ -331,13 +331,14 @@ export default async function FreelancersPage({
               return (
                 <article key={f.id} className="overflow-hidden rounded-xl border bg-card transition-all duration-200 hover:shadow-lg">
                   <Link href={`/freelancers/${f.id}`} className="block group">
-                    <div className="relative h-48 bg-muted overflow-hidden">
+                    <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                       {f.profile_image_url ? (
                         <Image
                           src={f.profile_image_url}
                           alt={f.display_name || "진행자 프로필"}
                           fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="object-contain transition-opacity duration-300"
+                          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-navy/10 to-navy/5">
