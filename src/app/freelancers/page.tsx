@@ -322,7 +322,7 @@ export default async function FreelancersPage({
         </p>
       ) : (
         <>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {freelancers.map((f) => {
               const safeSignatureVoiceUrl = f.signature_voice_url && isSafeHttpsUrl(f.signature_voice_url)
                 ? f.signature_voice_url

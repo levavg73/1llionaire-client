@@ -136,6 +136,22 @@ export type BookingDetail = Booking & {
   quote?: Quote | null;
 };
 
+export interface FreelancerDeliveredBookingSummary {
+  id: string;
+  booking_status: BookingStatus;
+  payment_status: PaymentStatus;
+  final_price: number;
+  chat_room?: Pick<ChatRoom, "id"> | null;
+  contract?: Pick<
+    Contract,
+    | "id"
+    | "status"
+    | "customer_signed_at"
+    | "freelancer_signed_at"
+    | "fully_signed_at"
+  > | null;
+}
+
 export interface FreelancerRequestItem {
   id: string;
   status: string;
@@ -145,11 +161,17 @@ export interface FreelancerRequestItem {
     | "event_title"
     | "event_type"
     | "event_date"
+    | "start_time"
+    | "end_time"
     | "region"
+    | "venue"
     | "budget_min"
     | "budget_max"
+    | "description"
     | "status"
-  >;
+  > & {
+    bookings?: FreelancerDeliveredBookingSummary[];
+  };
 }
 
 export interface FreelancerSettlementRow {
