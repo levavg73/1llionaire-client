@@ -337,7 +337,7 @@ export default async function FreelancersPage({
                           src={f.profile_image_url}
                           alt={f.display_name || "진행자 프로필"}
                           fill
-                          className="object-contain transition-opacity duration-300"
+                          className="object-cover object-[center_35%] transition-transform duration-300 group-hover:scale-[1.02]"
                           sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                         />
                       ) : (
