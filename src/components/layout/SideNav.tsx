@@ -78,6 +78,7 @@ export function FreelancerNav() {
       items={[
         { href: "/freelancer/profile", label: "내 프로필", icon: <Briefcase className="h-4 w-4" /> },
         { href: "/freelancer/portfolio", label: "포트폴리오", icon: <Star className="h-4 w-4" /> },
+        { href: "/freelancer/availability", label: "가능 시간대", icon: <Calendar className="h-4 w-4" /> },
         { href: "/freelancer/requests", label: "전달받은 요청", icon: <ClipboardList className="h-4 w-4" /> },
         { href: "/freelancer/bookings", label: "예약 관리", icon: <Calendar className="h-4 w-4" /> },
         { href: "/freelancer/chats", label: "상담", icon: <MessageSquare className="h-4 w-4" /> },

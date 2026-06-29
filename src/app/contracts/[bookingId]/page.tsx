@@ -68,6 +68,15 @@ export default function ContractPage({ params }: { params: { bookingId: string }
               </CardContent>
             </Card>
 
+            <Card className="border-amber-200 bg-amber-50">
+              <CardContent className="pt-5 text-sm leading-6 text-amber-900">
+                <p className="font-semibold">계약서 운영 원칙</p>
+                <p className="mt-1">
+                  계약서는 양측이 합의한 금액과 행사 조건을 고정하는 문서입니다. 양측 서명 전에는 금액 제안을 다시 조율할 수 있지만, 서명 완료 후에는 직접 수정할 수 없습니다.
+                </p>
+              </CardContent>
+            </Card>
+
             <ContractPanel bookingId={booking.id} bookingStatus={booking.booking_status} />
           </div>
         )}

@@ -162,9 +162,11 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
 
   // 결제 불가 상태 체크
   const isPayableStatus = ["payment_pending", "confirmed"].includes(booking.booking_status);
+  const missingContract = !booking.contract;
   const needsContractSignature = !!booking.contract && booking.contract.status !== "fully_signed";
   const canPay = isPayableStatus &&
     booking.payment_status !== "fully_paid" &&
+    !missingContract &&
     !needsContractSignature;
 
   return (
@@ -216,11 +218,13 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
         <Card className="mb-4 border-amber-200 bg-amber-50">
           <CardContent className="pt-5 pb-5 text-sm text-amber-800">
             {!isPayableStatus
-              ? "프리랜서 수락 또는 가격 확정 후 결제할 수 있습니다."
-              : needsContractSignature
-                ? "계약서에 고객과 프리랜서 양측 서명이 완료된 후 결제할 수 있습니다."
-                : "이미 결제가 완료되었습니다."}
-            {needsContractSignature && (
+              ? "프리랜서 수락 후 상담에서 가격을 확정해야 결제할 수 있습니다."
+              : missingContract
+                ? "계약서가 생성된 후 결제할 수 있습니다. 가격 제안을 확정해 계약서를 먼저 생성해 주세요."
+                : needsContractSignature
+                  ? "계약서에 고객과 프리랜서 양측 서명이 완료된 후 결제할 수 있습니다."
+                  : "이미 결제가 완료되었습니다."}
+            {(missingContract || needsContractSignature) && (
               <Button
                 type="button"
                 variant="outline"
@@ -248,8 +252,7 @@ export default function PaymentPage({ params }: { params: { id: string } }) {
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0" />
             <p>
-              토스페이먼츠를 통해 안전하게 결제됩니다. 카드, 계좌이체,
-              간편결제(토스, 카카오페이, 네이버페이) 이용 가능합니다.
+              결제 전 계약서 양측 전자서명을 완료해야 합니다. 토스페이먼츠 sandbox 결제로 거래 흐름을 검증하며, 결제 완료 후 대금은 플랫폼 상태값 기준으로 에스크로 보관 처리됩니다.
             </p>
           </div>
           {process.env.NODE_ENV !== "production" && (

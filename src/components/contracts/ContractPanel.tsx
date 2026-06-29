@@ -67,6 +67,13 @@ export function ContractPanel({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-xs leading-5 text-amber-900">
+          <p className="font-semibold">전자계약 안내</p>
+          <p className="mt-1">
+            계약서는 상담에서 합의된 금액과 행사 조건을 기준으로 생성됩니다. 양측 전자서명이 완료되면 계약 내용은 확정되며, 이후 직접 수정할 수 없습니다. 변경이 필요한 경우 기존 예약을 취소하고 새 조건으로 다시 진행해 주세요.
+          </p>
+        </div>
+
         {contractQuery.isLoading && <p className="text-muted-foreground">계약서 상태를 확인 중입니다...</p>}
 
         {contractQuery.isError && !isNotFound && (
@@ -78,7 +85,7 @@ export function ContractPanel({
         {isNotFound && (
           <div className="space-y-3">
             <p className="text-muted-foreground">
-              아직 계약서가 생성되지 않았습니다. 결제 대기 또는 예약 확정 상태에서 고객 또는 프리랜서가 계약서를 생성할 수 있습니다.
+              아직 계약서가 생성되지 않았습니다. 가격 제안이 수락되어 결제 대기 상태가 되면 계약서를 생성할 수 있습니다.
             </p>
             <Button
               type="button"
@@ -89,7 +96,7 @@ export function ContractPanel({
               {generateMutation.isPending ? "생성 중..." : "계약서 생성"}
             </Button>
             {!canGenerateContract(bookingStatus) && (
-              <p className="text-xs text-muted-foreground">결제 대기 또는 예약 확정 후 계약서 생성이 가능합니다.</p>
+              <p className="text-xs text-muted-foreground">진행자 수락 후 상담에서 가격을 확정하면 계약서 생성이 가능합니다.</p>
             )}
           </div>
         )}

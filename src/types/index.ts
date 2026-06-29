@@ -139,6 +139,17 @@ export interface SavedFreelancer {
   freelancer: FreelancerProfile;
 }
 
+export interface FreelancerAvailabilitySlot {
+  id: string;
+  freelancer_id: string;
+  available_date: string;
+  start_time: string;
+  end_time: string;
+  note?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // ─── 고객 요청서 ─────────────────────────────────────────────
 
 export type RequestStatus =

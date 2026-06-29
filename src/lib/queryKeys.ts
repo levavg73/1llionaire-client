@@ -26,6 +26,7 @@ export const queryKeys = {
 
   freelancerProfile: ["freelancer", "profile"] as const,
   freelancerPortfolio: ["freelancer", "portfolio"] as const,
+  freelancerAvailability: ["freelancer", "availability"] as const,
   freelancerRequests: ["freelancer", "requests"] as const,
   freelancerRequestsPage: (page: number) => ["freelancer", "requests", { page }] as const,
   freelancerBookings: ["freelancer", "bookings"] as const,

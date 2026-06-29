@@ -1,6 +1,7 @@
 import type {
   BackendListResponse,
   BackendResponse,
+  FreelancerAvailabilitySlot,
   FreelancerProfile,
   FreelancerRequestItem,
   FreelancerSettlementRow,
@@ -56,6 +57,26 @@ export const freelancerApi = {
 
   deletePortfolio: (id: string) =>
     http.delete<BackendResponse<null>>(`/api/freelancer/portfolio/${id}`),
+
+  getAvailability: () =>
+    http.get<BackendResponse<FreelancerAvailabilitySlot[]>>(
+      "/api/freelancer/availability"
+    ),
+
+  createAvailability: (data: unknown) =>
+    http.post<BackendResponse<FreelancerAvailabilitySlot>>(
+      "/api/freelancer/availability",
+      data
+    ),
+
+  updateAvailability: (id: string, data: unknown) =>
+    http.patch<BackendResponse<FreelancerAvailabilitySlot>>(
+      `/api/freelancer/availability/${id}`,
+      data
+    ),
+
+  deleteAvailability: (id: string) =>
+    http.delete<BackendResponse<null>>(`/api/freelancer/availability/${id}`),
 
   getRequests: (params?: Record<string, unknown>) =>
     http.get<BackendListResponse<FreelancerRequestItem>>("/api/freelancer/requests", {
