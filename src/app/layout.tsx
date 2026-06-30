@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+import { FloatingSupportBot } from "@/components/support/FloatingSupportBot";
 
 const siteUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://voit-client.vercel.app";
 
@@ -74,6 +76,8 @@ export default function RootLayout({
           <main id="main-content" tabIndex={-1}>
             {children}
           </main>
+          <Footer />
+          <FloatingSupportBot />
         </Providers>
       </body>
     </html>
