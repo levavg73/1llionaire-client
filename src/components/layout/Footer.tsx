@@ -9,13 +9,13 @@ export function Footer() {
   return (
     <footer className="border-t border-line bg-background text-text" aria-label="사이트 하단 정보">
       <div className="container mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center gap-4 text-center text-sm text-slate dark:text-white/60">
+        <div className="flex flex-col items-center gap-4 text-center text-sm text-slate dark:text-white/75">
           <p>
             운영시간 10:30~18:00{" "}
-            <span className="text-slate/70 dark:text-white/50">
+            <span className="text-slate dark:text-white/75">
               (점심시간 13:00~14:00)
             </span>
-            <span className="mx-2 text-slate/40 dark:text-white/30">·</span>
+            <span className="mx-2 text-slate/70 dark:text-white/60">·</span>
             주말, 공휴일 휴무
           </p>
 
@@ -31,7 +31,7 @@ export function Footer() {
             ))}
           </nav>
 
-          <p className="text-xs text-slate/80 dark:text-white/50">
+          <p className="text-xs text-slate dark:text-white/75">
             © {new Date().getFullYear()} VOIT. All rights reserved.
           </p>
         </div>

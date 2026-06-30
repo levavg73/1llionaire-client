@@ -66,8 +66,16 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
   if (isError) return <ErrorState onRetry={() => refetch()} />;
   if (!req) return null;
 
-  const recommendationReady = ["recommended", "consulting", "booked", "completed", "reviewed"].includes(req.status);
-  const matchingInProgress = ["submitted", "reviewing", "recommending"].includes(req.status);
+  const directRequestRecommendation = req.recommendations?.find((recommendation) =>
+    recommendation.status === "consultation_requested"
+  );
+  const isDirectFreelancerRequest = Boolean(directRequestRecommendation);
+  const recommendationReady =
+    !isDirectFreelancerRequest &&
+    ["recommended", "consulting", "booked", "completed", "reviewed"].includes(req.status);
+  const matchingInProgress =
+    !isDirectFreelancerRequest &&
+    ["submitted", "reviewing", "recommending"].includes(req.status);
   const cancelErrorMessage = (cancelMutation.error as ApiError<{error:{message:string}}> | null)?.response?.data?.error?.message;
 
   return (
@@ -160,6 +168,24 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
             <CardContent><p className="text-sm leading-relaxed whitespace-pre-line">{req.description}</p></CardContent>
           </Card>
         )}
+
+        {isDirectFreelancerRequest && directRequestRecommendation?.freelancer ? (
+          <Card className="border-emerald-200 bg-emerald-50">
+            <CardContent className="pt-6 text-sm text-emerald-800">
+              <p className="font-medium">
+                {directRequestRecommendation.freelancer.display_name ?? "지명한 진행자"}님에게 요청서를 전달했습니다
+              </p>
+              <p className="mt-1 text-emerald-700">
+                진행자가 수락하면 상담방이 열립니다. 응답 상태는 예약 현황에서 확인할 수 있습니다.
+              </p>
+              <Link href="/customer/bookings" className="mt-4 block">
+                <Button variant="outline" className="w-full bg-white">
+                  예약 현황 보기
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        ) : null}
 
         {recommendationReady && (
           <Link href={`/customer/requests/${id}/recommendations`}>

@@ -73,7 +73,7 @@ export default function RootLayout({
             본문으로 건너뛰기
           </a>
           <Header />
-          <main id="main-content" tabIndex={-1}>
+          <main id="main-content" tabIndex={-1} className="min-h-[calc(100svh-13.625rem)]">
             {children}
           </main>
           <Footer />

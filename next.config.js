@@ -11,9 +11,8 @@ const apiProxyTarget = normalizeApiProxyTarget(
     (process.env.NODE_ENV === "production" ? "" : "http://localhost:4000")
 );
 
-if (process.env.NODE_ENV === "production" && !apiProxyTarget) {
-  throw new Error("API_PROXY_TARGET or NEXT_PUBLIC_API_BASE_URL is required in production.");
-}
+// Do not fail production builds when API env vars are injected only at runtime.
+// If no API target is provided, Next.js simply skips the local /api rewrite.
 
 let apiHostname;
 
@@ -24,6 +23,8 @@ try {
 }
 
 /** @type {import('next').NextConfig} */
+const isProduction = process.env.NODE_ENV === "production";
+
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -32,6 +33,14 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), payment=()",
   },
+  ...(isProduction
+    ? [
+        {
+          key: "Strict-Transport-Security",
+          value: "max-age=31536000; includeSubDomains; preload",
+        },
+      ]
+    : []),
 ];
 
 const nextConfig = {
@@ -44,7 +53,7 @@ const nextConfig = {
       ...(apiHostname
         ? [
             { protocol: "https", hostname: apiHostname },
-            { protocol: "http", hostname: apiHostname },
+            ...(!isProduction ? [{ protocol: "http", hostname: apiHostname }] : []),
           ]
         : []),
       { protocol: "https", hostname: "*.supabase.co" },

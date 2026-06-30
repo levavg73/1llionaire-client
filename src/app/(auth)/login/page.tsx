@@ -141,7 +141,7 @@ function LoginContent() {
               </Label>
               <Link
                 href="/forgot-password"
-                className="text-[13px] font-semibold text-lavender hover:underline"
+                className="text-[13px] font-bold text-lavender-dark hover:underline dark:text-lavender"
               >
                 비밀번호를 잊으셨나요?
               </Link>

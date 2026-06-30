@@ -17,6 +17,7 @@ import { Trash2 } from "lucide-react";
 export default function NotificationsPage() {
   const [page, setPage] = useState(1);
   const [deletingNotificationId, setDeletingNotificationId] = useState<string | null>(null);
+  const [deletedNotificationIds, setDeletedNotificationIds] = useState<Set<string>>(() => new Set());
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -26,7 +27,9 @@ export default function NotificationsPage() {
     refetchInterval: 10000,
   });
 
-  const notifications: NotificationItem[] = data?.data?.data?.items ?? [];
+  const notifications: NotificationItem[] = (data?.data?.data?.items ?? []).filter(
+    (item) => !deletedNotificationIds.has(item.id)
+  );
   const pagination = data?.data?.data?.pagination;
 
   const invalidate = () => {
@@ -48,6 +51,14 @@ export default function NotificationsPage() {
     mutationFn: (id: string) => notificationApi.deleteNotification(id),
     onMutate: (id: string) => {
       setDeletingNotificationId(id);
+      setDeletedNotificationIds((current) => new Set(current).add(id));
+    },
+    onError: (_error, id) => {
+      setDeletedNotificationIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
     },
     onSuccess: invalidate,
     onSettled: (_data, _error, id) => {

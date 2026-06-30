@@ -25,6 +25,9 @@ function NewRequestContent() {
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.customerRequests });
 
+      queryClient.invalidateQueries({ queryKey: queryKeys.customerBookings });
+      queryClient.invalidateQueries({ queryKey: queryKeys.freelancerRequests });
+
       const id = res.data.data?.id;
       router.push(id ? `/customer/requests/${id}` : "/customer/requests");
     },
@@ -55,7 +58,7 @@ function NewRequestContent() {
     <div className="animate-fade-in max-w-2xl">
       {freelancerId && (
         <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          ✅ 특정 진행자를 지명하여 요청서를 작성합니다. 제출 후 해당 진행자가 우선 후보로 바로 반영됩니다.
+          ✅ 특정 진행자를 지명하여 요청서를 작성합니다. 제출하면 해당 진행자에게 바로 요청서가 전달됩니다.
         </div>
       )}
 
@@ -71,7 +74,9 @@ function NewRequestContent() {
         <div>
           <h1 className="text-2xl font-bold">요청서 작성</h1>
           <p className="text-muted-foreground text-sm">
-            행사 조건을 구조화해 입력하면 승인된 진행자 중 맞춤 후보를 바로 추천합니다
+            {freelancerId
+              ? "행사 조건을 입력하면 지명한 진행자에게 요청서를 바로 전달합니다"
+              : "행사 조건을 구조화해 입력하면 승인된 진행자 중 맞춤 후보를 바로 추천합니다"}
           </p>
         </div>
       </div>
