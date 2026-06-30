@@ -18,7 +18,15 @@ import {
   CONTRACT_STATUS_LABEL,
 } from "@/types";
 
-type BadgeVariant = "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info" | "gold";
+type BadgeVariant =
+  | "default"
+  | "secondary"
+  | "destructive"
+  | "outline"
+  | "success"
+  | "warning"
+  | "info"
+  | "gold";
 
 // 상태 → variant 매핑
 const freelancerVariant: Record<FreelancerStatus, BadgeVariant> = {
@@ -119,6 +127,10 @@ export function ReviewStatusBadge({ status }: { status: ReviewStatus }) {
 }
 
 export function EscrowStatusBadge({ status }: { status: EscrowStatus }) {
+  if (status === "none") {
+    return null;
+  }
+
   return <Badge variant={escrowVariant[status]}>{ESCROW_STATUS_LABEL[status]}</Badge>;
 }
 
@@ -128,7 +140,11 @@ export function ContractStatusBadge({ status }: { status: ContractStatus }) {
 
 export function UserRoleBadge({ role }: { role: "customer" | "freelancer" | "admin" }) {
   const map = { customer: "고객", freelancer: "프리랜서", admin: "관리자" };
-  const variantMap: Record<string, BadgeVariant> = { customer: "info", freelancer: "gold", admin: "default" };
+  const variantMap: Record<string, BadgeVariant> = {
+    customer: "info",
+    freelancer: "gold",
+    admin: "default",
+  };
 
   return <Badge variant={variantMap[role]}>{map[role]}</Badge>;
 }
