@@ -24,11 +24,7 @@ function getCurrentPath() {
   return `${window.location.pathname}${window.location.search}`;
 }
 
-export function ProtectedRoute({
-  children,
-  allowedRoles,
-  renderWhileLoading = false,
-}: ProtectedRouteProps) {
+export function ProtectedRoute({ children, allowedRoles, renderWhileLoading = false }: ProtectedRouteProps) {
   const { user, isLoading, isServerWaking } = useAuth();
   const router = useRouter();
 
@@ -61,12 +57,8 @@ export function ProtectedRoute({
   if (isLoading && renderWhileLoading) {
     return <>{children}</>;
   }
-
   if (!user) return null;
-
-  if (allowedRoles && !allowedRoles.includes(user.user_type)) {
-    return null;
-  }
+  if (allowedRoles && !allowedRoles.includes(user.user_type)) return null;
 
   return <>{children}</>;
 }

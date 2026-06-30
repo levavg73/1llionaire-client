@@ -20,7 +20,7 @@ import {
 } from "@/components/common/StatusBadge";
 import { formatDate, formatPrice } from "@/lib/utils";
 import type { FreelancerRequestItem } from "@/lib/api-contracts";
-import type { BookingStatus, PaymentStatus } from "@/types";
+import type { Booking, BookingStatus, PaymentStatus } from "@/types";
 import {
   Banknote,
   Calendar,
@@ -50,6 +50,56 @@ function canOpenChat(booking?: DeliveredBooking) {
   return !!booking?.chat_room?.id && booking.booking_status !== "pending";
 }
 
+
+type FreelancerRequestsPageResponse = Awaited<ReturnType<typeof freelancerApi.getRequests>>;
+
+function patchAcceptedBookingInRequests(
+  oldData: FreelancerRequestsPageResponse | undefined,
+  acceptedBooking: Booking | undefined,
+): FreelancerRequestsPageResponse | undefined {
+  if (!oldData || !acceptedBooking) return oldData;
+
+  return {
+    ...oldData,
+    data: {
+      ...oldData.data,
+      data: {
+        ...oldData.data.data,
+        items: oldData.data.data.items.map((item) => {
+          const bookings = item.request?.bookings;
+          const hasAcceptedBooking = bookings?.some(
+            (booking) => booking.id === acceptedBooking.id,
+          );
+
+          if (!hasAcceptedBooking || !item.request) return item;
+
+          return {
+            ...item,
+            status: "selected",
+            request: {
+              ...item.request,
+              bookings: bookings?.map((booking) =>
+                booking.id === acceptedBooking.id
+                  ? {
+                      ...booking,
+                      booking_status: "accepted",
+                      payment_status: acceptedBooking.payment_status,
+                      final_price: acceptedBooking.final_price,
+                      chat_room: acceptedBooking.chat_room
+                        ? { id: acceptedBooking.chat_room.id }
+                        : booking.chat_room,
+                      contract: acceptedBooking.contract ?? booking.contract,
+                    }
+                  : booking,
+              ),
+            },
+          };
+        }),
+      },
+    },
+  };
+}
+
 export default function FreelancerRequestsPage() {
   const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
@@ -70,7 +120,16 @@ export default function FreelancerRequestsPage() {
 
   const acceptMutation = useMutation({
     mutationFn: (bookingId: string) => bookingApi.acceptBooking(bookingId),
-    onSuccess: invalidateRelatedQueries,
+    onSuccess: (response) => {
+      const acceptedBooking = response.data.data;
+
+      queryClient.setQueryData<FreelancerRequestsPageResponse>(
+        queryKeys.freelancerRequestsPage(page),
+        (oldData) => patchAcceptedBookingInRequests(oldData, acceptedBooking),
+      );
+
+      invalidateRelatedQueries();
+    },
   });
 
   const rejectMutation = useMutation({

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell, HelpCircle, LogOut, Moon, Sun } from "lucide-react";
+import { Bell, LogOut, Moon, Sun } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -109,7 +109,7 @@ export function Header() {
       }`}
     >
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-        <Link href="/" prefetch={false} className="flex items-center gap-3 text-text">
+        <Link href="/" className="flex items-center gap-3 text-text">
           <Image
             src="/brand-icon.webp"
             alt="보잇 Voit"
@@ -125,13 +125,6 @@ export function Header() {
         </Link>
 
         <nav className="flex items-center gap-2 sm:gap-3">
-          <Link href="/support" prefetch={false} className="hidden md:inline-flex">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <HelpCircle className="h-4.5 w-4.5" aria-hidden="true" />
-              고객센터
-            </Button>
-          </Link>
-
           <Button
             variant="ghost"
             size="icon"
@@ -147,7 +140,7 @@ export function Header() {
 
           {user ? (
             <>
-              <Link href="/notifications" prefetch={false}>
+              <Link href="/notifications">
                 <Button variant="ghost" size="icon" className="relative" aria-label="알림">
                   <Bell className="h-4.5 w-4.5" />
                   {unreadCount > 0 && (
@@ -157,7 +150,7 @@ export function Header() {
                   )}
                 </Button>
               </Link>
-              <Link href={dashboardHref} prefetch={false}>
+              <Link href={dashboardHref}>
                 <Button variant="ghost" size="sm" className="gap-2">
                   <UserRoleBadge role={user.user_type} />
                   <span className="hidden sm:inline">{user.name}</span>
@@ -174,12 +167,12 @@ export function Header() {
             </>
           ) : (
             <>
-              <Link href="/login" prefetch={false}>
+              <Link href="/login">
                 <Button variant="ghost" size="sm">
                   로그인
                 </Button>
               </Link>
-              <Link href="/signup" prefetch={false}>
+              <Link href="/signup">
                 <Button variant="primaryCta" size="sm">
                   회원가입
                 </Button>
