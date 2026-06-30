@@ -33,6 +33,19 @@ interface LineItem {
   reason: string;
 }
 
+interface PricingGuide {
+  role: string;
+  career_tier: string;
+  core_base_price: number;
+  duration_multiplier: number;
+  career_multiplier: number;
+  language_surcharge_rate: number;
+  language_surcharge_center: number;
+  guide_min: number;
+  guide_center: number;
+  guide_max: number;
+}
+
 interface PricingResult {
   event_summary: string;
   line_items: LineItem[];
@@ -46,7 +59,11 @@ interface PricingResult {
     sample_count: number;
     market_min: number;
     avg_price_min: number;
+    avg_price_max: number;
+    median_price_min: number;
+    median_price_max: number;
     market_max: number;
+    pricing_guide?: PricingGuide;
   };
 }
 
@@ -126,7 +143,24 @@ function normalize(raw: unknown): PricingResult | null {
       sample_count: n(md, "sample_count"),
       market_min:   n(md, "market_min"),
       avg_price_min: n(md, "avg_price_min"),
+      avg_price_max: n(md, "avg_price_max"),
+      median_price_min: n(md, "median_price_min"),
+      median_price_max: n(md, "median_price_max"),
       market_max:   n(md, "market_max"),
+      pricing_guide: typeof md.pricing_guide === "object" && md.pricing_guide !== null
+        ? {
+            role: s(md.pricing_guide as Record<string, unknown>, "role"),
+            career_tier: s(md.pricing_guide as Record<string, unknown>, "career_tier"),
+            core_base_price: n(md.pricing_guide as Record<string, unknown>, "core_base_price"),
+            duration_multiplier: n(md.pricing_guide as Record<string, unknown>, "duration_multiplier"),
+            career_multiplier: n(md.pricing_guide as Record<string, unknown>, "career_multiplier"),
+            language_surcharge_rate: n(md.pricing_guide as Record<string, unknown>, "language_surcharge_rate"),
+            language_surcharge_center: n(md.pricing_guide as Record<string, unknown>, "language_surcharge_center"),
+            guide_min: n(md.pricing_guide as Record<string, unknown>, "guide_min"),
+            guide_center: n(md.pricing_guide as Record<string, unknown>, "guide_center"),
+            guide_max: n(md.pricing_guide as Record<string, unknown>, "guide_max"),
+          }
+        : undefined,
     },
   };
 }
@@ -204,21 +238,21 @@ export default function AdminAiPage() {
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>행사 유형 *</Label>
-                <Input placeholder="기업 시상식" {...register("event_type")} />
+                <Label htmlFor="pricing-event-type">행사 유형 *</Label>
+                <Input id="pricing-event-type" placeholder="기업 시상식" {...register("event_type")} />
                 {errors.event_type && (
                   <p className="text-xs text-destructive">{errors.event_type.message}</p>
                 )}
               </div>
               <div className="space-y-1.5">
-                <Label>지역 *</Label>
-                <Input placeholder="서울" {...register("region")} />
+                <Label htmlFor="pricing-region">지역 *</Label>
+                <Input id="pricing-region" placeholder="서울" {...register("region")} />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>분야 * (복수 선택)</Label>
-              <div className="flex flex-wrap gap-2">
+              <span id="pricing-categories-label" className="text-sm font-medium leading-none">분야 * (복수 선택)</span>
+              <div className="flex flex-wrap gap-2" role="group" aria-labelledby="pricing-categories-label">
                 {CATEGORIES.map((cat) => (
                   <button
                     key={cat}
@@ -241,24 +275,27 @@ export default function AdminAiPage() {
 
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-1.5">
-                <Label>예산 최소 (원)</Label>
+                <Label htmlFor="pricing-budget-min">예산 최소 (원)</Label>
                 <Input
+                  id="pricing-budget-min"
                   type="number"
                   placeholder="300000"
                   {...register("budget_min", { valueAsNumber: true })}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>예산 최대 (원)</Label>
+                <Label htmlFor="pricing-budget-max">예산 최대 (원)</Label>
                 <Input
+                  id="pricing-budget-max"
                   type="number"
                   placeholder="1000000"
                   {...register("budget_max", { valueAsNumber: true })}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>진행 시간 (h)</Label>
+                <Label htmlFor="pricing-duration-hours">진행 시간 (h)</Label>
                 <Input
+                  id="pricing-duration-hours"
                   type="number"
                   step="0.5"
                   placeholder="2"
@@ -268,8 +305,9 @@ export default function AdminAiPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>최소 경력 (년)</Label>
+              <Label htmlFor="pricing-career-years-min">최소 경력 (년)</Label>
               <Input
+                id="pricing-career-years-min"
                 type="number"
                 placeholder="0"
                 className="max-w-[120px]"
@@ -407,10 +445,11 @@ export default function AdminAiPage() {
                   <TrendingUp className="h-4 w-4 text-navy" />
                   시장 현황
                 </div>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {[
                     { label: "시장 최저", value: result.market_data.market_min },
-                    { label: "평균 단가", value: result.market_data.avg_price_min },
+                    { label: "중앙 최소", value: result.market_data.median_price_min },
+                    { label: "평균 최소", value: result.market_data.avg_price_min },
                     { label: "시장 최고", value: result.market_data.market_max },
                   ].map(({ label, value }) => (
                     <div key={label} className="rounded-lg bg-muted p-3 text-center">
@@ -420,6 +459,36 @@ export default function AdminAiPage() {
                   ))}
                 </div>
               </div>
+
+              {result.market_data.pricing_guide && (
+                <div className="space-y-2 rounded-lg border border-navy/10 bg-navy/5 p-4">
+                  <p className="text-sm font-semibold text-navy">추천 산식 기준</p>
+                  <div className="grid gap-3 text-sm sm:grid-cols-2">
+                    <div>
+                      <p className="text-xs text-muted-foreground">역할 / 경력 구간</p>
+                      <p className="font-semibold">
+                        {result.market_data.pricing_guide.role} · {result.market_data.pricing_guide.career_tier}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">본행사 기준 진행비</p>
+                      <p className="font-semibold">{formatPrice(result.market_data.pricing_guide.core_base_price)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">시간/경력 가중치</p>
+                      <p className="font-semibold">
+                        {result.market_data.pricing_guide.duration_multiplier}x / {result.market_data.pricing_guide.career_multiplier}x
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">산식 권장 범위</p>
+                      <p className="font-semibold">
+                        {formatPrice(result.market_data.pricing_guide.guide_min)} ~ {formatPrice(result.market_data.pricing_guide.guide_max)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* 가정 사항 */}
               {result.assumptions.length > 0 && (

@@ -93,10 +93,10 @@ const defaultValues: RequestFormValues = {
   travel_required: false,
 };
 
-function Field({ label, error, required, children }: { label: string; error?: string; required?: boolean; children: React.ReactNode }) {
+function Field({ id, label, error, required, children }: { id: string; label: string; error?: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label>{label}{required && <span className="text-destructive ml-0.5">*</span>}</Label>
+      <Label htmlFor={id}>{label}{required && <span className="text-destructive ml-0.5">*</span>}</Label>
       {children}
       {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
     </div>
@@ -104,6 +104,7 @@ function Field({ label, error, required, children }: { label: string; error?: st
 }
 
 function ChipGroup({
+  id,
   label,
   required,
   options,
@@ -112,6 +113,7 @@ function ChipGroup({
   description,
   onToggle,
 }: {
+  id: string;
   label: string;
   required?: boolean;
   options: readonly string[];
@@ -123,10 +125,10 @@ function ChipGroup({
   return (
     <div className="space-y-2">
       <div>
-        <Label>{label}{required && <span className="text-destructive ml-0.5">*</span>}</Label>
+        <span id={id} className="text-sm font-medium leading-none">{label}{required && <span className="text-destructive ml-0.5">*</span>}</span>
         {description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2" role="group" aria-labelledby={id}>
         {options.map((option) => {
           const active = selected.includes(option);
           return (
@@ -203,29 +205,29 @@ export function RequestForm({
       <Card className="mb-4">
         <CardHeader><CardTitle className="text-base">행사 기본 정보</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <Field label="행사명" error={errors.event_title?.message} required>
-            <Input placeholder="2026 하반기 임직원 시상식" {...register("event_title")} />
+          <Field id="event_title" label="행사명" error={errors.event_title?.message} required>
+            <Input id="event_title" placeholder="2026 하반기 임직원 시상식" {...register("event_title")} />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="행사 종류" error={errors.event_type?.message} required>
-              <Input placeholder="기업행사" {...register("event_type")} />
+            <Field id="event_type" label="행사 종류" error={errors.event_type?.message} required>
+              <Input id="event_type" placeholder="기업행사" {...register("event_type")} />
             </Field>
-            <Field label="지역" error={errors.region?.message} required>
-              <Input placeholder="서울" {...register("region")} />
+            <Field id="region" label="지역" error={errors.region?.message} required>
+              <Input id="region" placeholder="서울" {...register("region")} />
             </Field>
           </div>
-          <Field label="장소" error={errors.venue?.message}>
-            <Input placeholder="그랜드힐튼 컨벤션홀" {...register("venue")} />
+          <Field id="venue" label="장소" error={errors.venue?.message}>
+            <Input id="venue" placeholder="그랜드힐튼 컨벤션홀" {...register("venue")} />
           </Field>
           <div className="grid gap-4 sm:grid-cols-3">
-            <Field label="행사 날짜" error={errors.event_date?.message} required>
-              <Input type="date" {...register("event_date")} />
+            <Field id="event_date" label="행사 날짜" error={errors.event_date?.message} required>
+              <Input id="event_date" type="date" {...register("event_date")} />
             </Field>
-            <Field label="시작 시간" error={errors.start_time?.message} required>
-              <Input type="time" {...register("start_time")} />
+            <Field id="start_time" label="시작 시간" error={errors.start_time?.message} required>
+              <Input id="start_time" type="time" {...register("start_time")} />
             </Field>
-            <Field label="종료 시간" error={errors.end_time?.message} required>
-              <Input type="time" {...register("end_time")} />
+            <Field id="end_time" label="종료 시간" error={errors.end_time?.message} required>
+              <Input id="end_time" type="time" {...register("end_time")} />
             </Field>
           </div>
         </CardContent>
@@ -235,6 +237,7 @@ export function RequestForm({
         <CardHeader><CardTitle className="text-base">희망 진행자 조건</CardTitle></CardHeader>
         <CardContent className="space-y-5">
           <ChipGroup
+            id="preferred-freelancer-type-group"
             label="희망 진행자 유형"
             required
             options={FREELANCER_TYPE_OPTIONS}
@@ -244,6 +247,7 @@ export function RequestForm({
             onToggle={(value) => toggleValue("preferred_freelancer_type", selectedFreelancerTypes, value)}
           />
           <ChipGroup
+            id="preferred-styles-group"
             label="원하는 진행 분위기"
             required
             options={STYLE_OPTIONS}
@@ -259,15 +263,15 @@ export function RequestForm({
         <CardHeader><CardTitle className="text-base">예산 & 조건</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="최소 예산 (원)" error={errors.budget_min?.message}>
-              <Input type="number" min={1} inputMode="numeric" placeholder="300000" {...register("budget_min", { setValueAs: (v) => v === "" ? undefined : Number(v) })} />
+            <Field id="budget_min" label="최소 예산 (원)" error={errors.budget_min?.message}>
+              <Input id="budget_min" type="number" min={1} inputMode="numeric" placeholder="300000" {...register("budget_min", { setValueAs: (v) => v === "" ? undefined : Number(v) })} />
             </Field>
-            <Field label="최대 예산 (원)" error={errors.budget_max?.message}>
-              <Input type="number" min={1} inputMode="numeric" placeholder="1000000" {...register("budget_max", { setValueAs: (v) => v === "" ? undefined : Number(v) })} />
+            <Field id="budget_max" label="최대 예산 (원)" error={errors.budget_max?.message}>
+              <Input id="budget_max" type="number" min={1} inputMode="numeric" placeholder="1000000" {...register("budget_max", { setValueAs: (v) => v === "" ? undefined : Number(v) })} />
             </Field>
           </div>
-          <Field label="필요 언어" error={errors.required_language?.message}>
-            <Input placeholder="한국어" {...register("required_language")} />
+          <Field id="required_language" label="필요 언어" error={errors.required_language?.message}>
+            <Input id="required_language" placeholder="한국어" {...register("required_language")} />
           </Field>
           <div className="flex flex-wrap gap-4 sm:gap-6">
             {[

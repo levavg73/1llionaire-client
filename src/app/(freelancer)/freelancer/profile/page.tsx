@@ -71,9 +71,9 @@ function ChipSelector({
   return (
     <div className="space-y-3">
       <div className="space-y-1">
-        <Label>
+        <span className="text-sm font-medium leading-none">
           {label} {required && <RequiredMark />}
-        </Label>
+        </span>
         {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </div>
 
@@ -673,8 +673,9 @@ export default function FreelancerProfilePage() {
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>최소 가격 (원) <RequiredMark /></Label>
+                <Label htmlFor="base_price_min">최소 가격 (원) <RequiredMark /></Label>
                 <Input
+                  id="base_price_min"
                   type="number"
                   min={0}
                   inputMode="numeric"
@@ -684,8 +685,9 @@ export default function FreelancerProfilePage() {
                 {errors.base_price_min && <p className="text-xs text-destructive">{errors.base_price_min.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>최대 가격 (원) <RequiredMark /></Label>
+                <Label htmlFor="base_price_max">최대 가격 (원) <RequiredMark /></Label>
                 <Input
+                  id="base_price_max"
                   type="number"
                   min={0}
                   inputMode="numeric"

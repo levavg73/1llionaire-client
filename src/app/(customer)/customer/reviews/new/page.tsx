@@ -133,7 +133,7 @@ function NewCustomerReviewContent() {
           <CardContent className="space-y-5">
             {SCORE_FIELDS.map(({ name, label }) => (
               <div key={name} className="flex items-center justify-between gap-4">
-                <Label className="shrink-0">{label}</Label>
+                <span className="shrink-0 text-sm font-medium leading-none">{label}</span>
                 <StarRating
                   value={watch(name)}
                   onChange={(value) => setValue(name, value, { shouldValidate: true })}

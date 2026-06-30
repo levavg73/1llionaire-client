@@ -92,35 +92,35 @@ export default function FreelancerPortfolioPage() {
             <form onSubmit={handleSubmit((v) => createMutation.mutate(v))} noValidate className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label>유형</Label>
-                  <select {...register("portfolio_type")} className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <Label htmlFor="portfolio_type">유형</Label>
+                  <select id="portfolio_type" {...register("portfolio_type")}  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
                     {Object.entries(TYPE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>카테고리</Label>
-                  <Input placeholder="기업행사" {...register("category")} />
+                  <Label htmlFor="portfolio_category">카테고리</Label>
+                  <Input id="portfolio_category" placeholder="기업행사" {...register("category")} />
                   {errors.category && <p className="text-xs text-destructive">{errors.category.message}</p>}
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label>제목 <span className="text-destructive">*</span></Label>
-                <Input placeholder="2023 삼성전자 연간 시상식 MC" {...register("title")} />
+                <Label htmlFor="portfolio_title">제목 <span className="text-destructive">*</span></Label>
+                <Input id="portfolio_title" placeholder="2023 삼성전자 연간 시상식 MC" {...register("title")} />
                 {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>미디어 URL <span className="text-destructive">*</span></Label>
-                <Input type="url" placeholder="https://youtube.com/..." {...register("media_url")} />
+                <Label htmlFor="portfolio_media_url">미디어 URL <span className="text-destructive">*</span></Label>
+                <Input id="portfolio_media_url" type="url" placeholder="https://youtube.com/..." {...register("media_url")} />
                 {errors.media_url && <p className="text-xs text-destructive">{errors.media_url.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>썸네일 URL</Label>
-                <Input type="url" placeholder="https://..." {...register("thumbnail_url")} />
+                <Label htmlFor="portfolio_thumbnail_url">썸네일 URL</Label>
+                <Input id="portfolio_thumbnail_url" type="url" placeholder="https://..." {...register("thumbnail_url")} />
                 {errors.thumbnail_url && <p className="text-xs text-destructive">{errors.thumbnail_url.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>설명</Label>
-                <Textarea rows={2} {...register("description")} />
+                <Label htmlFor="portfolio_description">설명</Label>
+                <Textarea id="portfolio_description" rows={2} {...register("description")} />
                 {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
               </div>
               <div className="flex flex-wrap gap-4 sm:gap-6">

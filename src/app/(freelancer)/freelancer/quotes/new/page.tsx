@@ -107,24 +107,24 @@ function FreelancerQuoteNewContent() {
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>진행 금액 (원) <span className="text-destructive">*</span></Label>
-                <Input type="number" min={1} inputMode="numeric" placeholder="500000" {...priceField} />
+                <Label htmlFor="quote_price">진행 금액 (원) <span className="text-destructive">*</span></Label>
+                <Input id="quote_price" type="number" min={1} inputMode="numeric" placeholder="500000" {...priceField} />
                 {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label>플랫폼 수수료 (원)</Label>
-                <Input type="number" min={0} inputMode="numeric" placeholder="0" {...platformFeeField} />
+                <Label htmlFor="quote_platform_fee">플랫폼 수수료 (원)</Label>
+                <Input id="quote_platform_fee" type="number" min={0} inputMode="numeric" placeholder="0" {...platformFeeField} />
                 {errors.platform_fee && <p className="text-xs text-destructive">{errors.platform_fee.message}</p>}
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label>고객 결제 총액 (원) <span className="text-destructive">*</span></Label>
-              <Input type="number" min={1} inputMode="numeric" {...register("total_price", { setValueAs: toRequiredNumber })} />
+              <Label htmlFor="quote_total_price">고객 결제 총액 (원) <span className="text-destructive">*</span></Label>
+              <Input id="quote_total_price" type="number" min={1} inputMode="numeric" {...register("total_price", { setValueAs: toRequiredNumber })} />
               {errors.total_price && <p className="text-xs text-destructive">{errors.total_price.message}</p>}
             </div>
             <div className="space-y-1.5">
-              <Label>견적 유효기간</Label>
-              <Input type="date" {...register("valid_until")} />
+              <Label htmlFor="quote_valid_until">견적 유효기간</Label>
+              <Input id="quote_valid_until" type="date" {...register("valid_until")} />
               {errors.valid_until && <p className="text-xs text-destructive">{errors.valid_until.message}</p>}
             </div>
           </CardContent>
@@ -145,8 +145,8 @@ function FreelancerQuoteNewContent() {
               ))}
             </div>
             <div className="space-y-1.5">
-              <Label>포함 서비스 설명</Label>
-              <Input placeholder="리허설 1회, 대본 수정 2회 포함" {...register("included_services")} />
+              <Label htmlFor="quote_included_services">포함 서비스 설명</Label>
+              <Input id="quote_included_services" placeholder="리허설 1회, 대본 수정 2회 포함" {...register("included_services")} />
               {errors.included_services && <p className="text-xs text-destructive">{errors.included_services.message}</p>}
             </div>
           </CardContent>
