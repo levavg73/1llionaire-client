@@ -8,7 +8,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  BookingStatusBadge,
+  TransactionStatusBadge,
   PaymentStatusBadge,
   EscrowStatusBadge,
 } from "@/components/common/StatusBadge";
@@ -103,7 +103,7 @@ export default function CustomerBookingsPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <BookingStatusBadge status={booking.booking_status} />
+                    <TransactionStatusBadge booking={booking} />
                     <PaymentStatusBadge status={booking.payment_status} />
                     {booking.escrow_status && (
                       <EscrowStatusBadge status={booking.escrow_status} />

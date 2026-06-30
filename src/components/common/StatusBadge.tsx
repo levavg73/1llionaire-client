@@ -8,6 +8,8 @@ import {
   ReviewStatus,
   EscrowStatus,
   ContractStatus,
+  TransactionStatus,
+  TransactionStatusInput,
   FREELANCER_STATUS_LABEL,
   REQUEST_STATUS_LABEL,
   BOOKING_STATUS_LABEL,
@@ -16,6 +18,8 @@ import {
   REVIEW_STATUS_LABEL,
   ESCROW_STATUS_LABEL,
   CONTRACT_STATUS_LABEL,
+  TRANSACTION_STATUS_LABEL,
+  getTransactionStatus,
 } from "@/types";
 
 type BadgeVariant =
@@ -54,7 +58,7 @@ const requestVariant: Record<RequestStatus, BadgeVariant> = {
 const bookingVariant: Record<BookingStatus, BadgeVariant> = {
   pending: "warning",
   negotiating: "info",
-  accepted: "success",
+  accepted: "warning",
   rejected: "destructive",
   payment_pending: "gold",
   confirmed: "info",
@@ -62,6 +66,13 @@ const bookingVariant: Record<BookingStatus, BadgeVariant> = {
   completed: "success",
   canceled: "secondary",
   disputed: "destructive",
+};
+
+const transactionVariant: Record<TransactionStatus, BadgeVariant> = {
+  contract_pending: "warning",
+  in_progress: "info",
+  completed: "success",
+  canceled: "secondary",
 };
 
 const paymentVariant: Record<PaymentStatus, BadgeVariant> = {
@@ -112,6 +123,11 @@ export function RequestStatusBadge({ status }: { status: RequestStatus }) {
 
 export function BookingStatusBadge({ status }: { status: BookingStatus }) {
   return <Badge variant={bookingVariant[status]}>{BOOKING_STATUS_LABEL[status]}</Badge>;
+}
+
+export function TransactionStatusBadge({ booking }: { booking: TransactionStatusInput }) {
+  const status = getTransactionStatus(booking);
+  return <Badge variant={transactionVariant[status]}>{TRANSACTION_STATUS_LABEL[status]}</Badge>;
 }
 
 export function PaymentStatusBadge({ status }: { status: PaymentStatus }) {

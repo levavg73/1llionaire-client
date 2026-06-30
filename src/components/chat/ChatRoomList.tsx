@@ -8,7 +8,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoadingState, EmptyState, ErrorState } from "@/components/common/States";
 import { Pagination } from "@/components/common/Pagination";
-import { BookingStatusBadge, PaymentStatusBadge } from "@/components/common/StatusBadge";
+import { TransactionStatusBadge, PaymentStatusBadge } from "@/components/common/StatusBadge";
 import { ChatRoom } from "@/types";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { MessageSquare, ChevronRight } from "lucide-react";
@@ -43,7 +43,7 @@ export function ChatRoomList({ basePath }: { basePath: "/customer/chats" | "/fre
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <div className="mb-2 flex flex-wrap items-center gap-2">
-                        {room.booking?.booking_status && <BookingStatusBadge status={room.booking.booking_status} />}
+                        {room.booking && <TransactionStatusBadge booking={room.booking} />}
                         {room.booking?.payment_status && <PaymentStatusBadge status={room.booking.payment_status} />}
                       </div>
                       <h2 className="truncate font-semibold">{room.booking?.event_title ?? "상담"}</h2>

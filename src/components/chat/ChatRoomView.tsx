@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingState, ErrorState } from "@/components/common/States";
-import { BookingStatusBadge, PaymentStatusBadge } from "@/components/common/StatusBadge";
+import { TransactionStatusBadge, PaymentStatusBadge } from "@/components/common/StatusBadge";
 import { BookingOffer, ChatMessage, ChatRoomDetail } from "@/types";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
 
@@ -167,7 +167,7 @@ export function ChatRoomView({ roomId, basePath }: { roomId: string; basePath: "
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <BookingStatusBadge status={booking.booking_status} />
+            <TransactionStatusBadge booking={booking} />
             <PaymentStatusBadge status={booking.payment_status} />
             {canPay && (
               <Link href={`/customer/bookings/${booking.id}/payment`}>

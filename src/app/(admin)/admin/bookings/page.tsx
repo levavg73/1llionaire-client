@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { Card, CardContent } from "@/components/ui/card";
-import { BookingStatusBadge, PaymentStatusBadge, SettlementStatusBadge } from "@/components/common/StatusBadge";
+import { TransactionStatusBadge, PaymentStatusBadge, SettlementStatusBadge } from "@/components/common/StatusBadge";
 import { LoadingState, EmptyState, ErrorState } from "@/components/common/States";
 import { Pagination } from "@/components/common/Pagination";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
@@ -67,7 +67,7 @@ export default function AdminBookingsPage() {
               <div className="flex items-start gap-4 justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap gap-2 mb-2">
-                    <BookingStatusBadge status={b.booking_status} />
+                    <TransactionStatusBadge booking={b} />
                     <PaymentStatusBadge status={b.payment_status} />
                     <SettlementStatusBadge status={b.settlement_status} />
                   </div>

@@ -250,6 +250,50 @@ export type PaymentStatus = "unpaid" | "deposit_paid" | "fully_paid" | "refunded
 export type SettlementStatus = "pending" | "scheduled" | "completed" | "held" | "failed";
 export type EscrowStatus = "none" | "held" | "released" | "refunded";
 export type ContractStatus = "draft" | "pending_customer" | "pending_freelancer" | "fully_signed" | "voided";
+export type TransactionStatus = "contract_pending" | "in_progress" | "completed" | "canceled";
+
+export interface TransactionStatusInput {
+  booking_status?: BookingStatus;
+  payment_status?: PaymentStatus;
+  settlement_status?: SettlementStatus | null;
+  escrow_status?: EscrowStatus | null;
+  transaction_status?: TransactionStatus | null;
+  contract?: { status?: ContractStatus | string | null } | null;
+}
+
+export function getTransactionStatus(booking: TransactionStatusInput): TransactionStatus {
+  if (booking.transaction_status) return booking.transaction_status;
+
+  if (
+    booking.booking_status === "canceled" ||
+    booking.booking_status === "rejected" ||
+    booking.booking_status === "disputed" ||
+    booking.payment_status === "refunded" ||
+    booking.escrow_status === "refunded" ||
+    booking.contract?.status === "voided"
+  ) {
+    return "canceled";
+  }
+
+  if (
+    booking.booking_status === "completed" &&
+    booking.payment_status === "fully_paid" &&
+    booking.escrow_status === "released" &&
+    booking.settlement_status === "completed"
+  ) {
+    return "completed";
+  }
+
+  if (
+    booking.contract?.status === "fully_signed" &&
+    booking.payment_status === "fully_paid" &&
+    booking.escrow_status === "held"
+  ) {
+    return "in_progress";
+  }
+
+  return "contract_pending";
+}
 
 export interface Booking {
   id: string;
@@ -267,6 +311,7 @@ export interface Booking {
   payment_status: PaymentStatus;
   settlement_status: SettlementStatus;
   escrow_status?: EscrowStatus;
+  transaction_status?: TransactionStatus;
   escrow_held_at?: string | null;
   escrow_released_at?: string | null;
   completion_requested_at?: string | null;
@@ -336,7 +381,19 @@ export interface ChatRoom {
   last_message_at?: string | null;
   created_at: string;
   updated_at: string;
-  booking?: Pick<Booking, "id" | "event_title" | "event_date" | "booking_status" | "payment_status" | "final_price">;
+  booking?: Pick<
+    Booking,
+    | "id"
+    | "event_title"
+    | "event_date"
+    | "booking_status"
+    | "payment_status"
+    | "settlement_status"
+    | "escrow_status"
+    | "transaction_status"
+    | "final_price"
+    | "contract"
+  >;
   customer?: Pick<User, "id" | "name">;
   freelancer?: Pick<FreelancerProfile, "id" | "display_name">;
   messages?: ChatMessage[];
@@ -475,14 +532,21 @@ export const REQUEST_STATUS_LABEL: Record<RequestStatus, string> = {
 export const BOOKING_STATUS_LABEL: Record<BookingStatus, string> = {
   pending: "수락 대기",
   negotiating: "가격 협상 중",
-  accepted: "수락 완료",
+  accepted: "상담 진행 중",
   rejected: "거절",
   payment_pending: "결제 대기",
   confirmed: "예약 확정",
   completion_requested: "완료 승인 대기",
-  completed: "행사 완료",
+  completed: "행사 완료 확인",
   canceled: "취소",
   disputed: "분쟁",
+};
+
+export const TRANSACTION_STATUS_LABEL: Record<TransactionStatus, string> = {
+  contract_pending: "계약 대기",
+  in_progress: "진행 중",
+  completed: "완료",
+  canceled: "취소",
 };
 
 export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = {

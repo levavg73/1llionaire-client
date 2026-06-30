@@ -7,7 +7,7 @@ import { bookingApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookingStatusBadge, PaymentStatusBadge, EscrowStatusBadge } from "@/components/common/StatusBadge";
+import { BookingStatusBadge, TransactionStatusBadge, PaymentStatusBadge, EscrowStatusBadge } from "@/components/common/StatusBadge";
 import { LoadingState, EmptyState, ErrorState } from "@/components/common/States";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { Pagination } from "@/components/common/Pagination";
@@ -75,6 +75,7 @@ export default function FreelancerBookingsPage() {
             <CardContent className="p-5">
               <div className="flex flex-wrap gap-2 mb-2">
                 <BookingStatusBadge status={b.booking_status} />
+                <TransactionStatusBadge booking={b} />
                 <PaymentStatusBadge status={b.payment_status} />
                 {b.escrow_status && <EscrowStatusBadge status={b.escrow_status} />}
               </div>

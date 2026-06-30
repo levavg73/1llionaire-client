@@ -8,7 +8,7 @@ import { ContractPanel } from "@/components/contracts/ContractPanel";
 import { LoadingState, ErrorState } from "@/components/common/States";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookingStatusBadge, PaymentStatusBadge, EscrowStatusBadge } from "@/components/common/StatusBadge";
+import { TransactionStatusBadge, PaymentStatusBadge, EscrowStatusBadge } from "@/components/common/StatusBadge";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 
@@ -47,7 +47,7 @@ export default function ContractPage({ params }: { params: { bookingId: string }
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex flex-wrap items-center gap-2">
-                  <BookingStatusBadge status={booking.booking_status} />
+                  <TransactionStatusBadge booking={booking} />
                   <PaymentStatusBadge status={booking.payment_status} />
                   {booking.escrow_status && <EscrowStatusBadge status={booking.escrow_status} />}
                 </div>

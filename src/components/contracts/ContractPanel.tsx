@@ -70,7 +70,7 @@ export function ContractPanel({
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-xs leading-5 text-amber-900">
           <p className="font-semibold">전자계약 안내</p>
           <p className="mt-1">
-            계약서는 상담에서 합의된 금액과 행사 조건을 기준으로 생성됩니다. 양측 전자서명이 완료되면 계약 내용은 확정되며, 이후 직접 수정할 수 없습니다. 변경이 필요한 경우 기존 예약을 취소하고 새 조건으로 다시 진행해 주세요.
+            계약서는 상담에서 합의된 금액과 행사 조건을 기준으로 생성됩니다. 양측 전자서명이 완료되면 계약 내용은 확정되며, 이후 직접 수정할 수 없습니다. 변경이나 취소가 필요한 경우 환불/계약 무효화 절차를 통해 처리해 주세요.
           </p>
         </div>
 

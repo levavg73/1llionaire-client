@@ -26,6 +26,7 @@ import type {
   SavedFreelancer,
   ReviewStatus,
   SettlementStatus,
+  TransactionStatus,
   User,
 } from "@/types";
 
@@ -107,7 +108,10 @@ export interface AdminPaymentRow {
   platform_fee: number;
   payment_status: PaymentStatus;
   booking_status: BookingStatus;
+  settlement_status?: SettlementStatus;
   escrow_status?: EscrowStatus;
+  transaction_status?: TransactionStatus;
+  contract?: Pick<Contract, "status"> | null;
   customer?: Pick<User, "name" | "email">;
   freelancer?: Pick<FreelancerProfile, "display_name">;
 }
@@ -124,6 +128,8 @@ export interface AdminSettlementRow {
   escrow_status?: EscrowStatus;
   escrow_held_at?: string | null;
   escrow_released_at?: string | null;
+  transaction_status?: TransactionStatus;
+  contract?: Pick<Contract, "status"> | null;
   freelancer?: Pick<FreelancerProfile, "id" | "display_name">;
 }
 
@@ -141,6 +147,9 @@ export interface FreelancerDeliveredBookingSummary {
   id: string;
   booking_status: BookingStatus;
   payment_status: PaymentStatus;
+  settlement_status?: SettlementStatus;
+  escrow_status?: EscrowStatus;
+  transaction_status?: TransactionStatus;
   final_price: number;
   chat_room?: Pick<ChatRoom, "id"> | null;
   contract?: Pick<
@@ -188,6 +197,8 @@ export interface FreelancerSettlementRow {
   escrow_status?: EscrowStatus;
   escrow_held_at?: string | null;
   escrow_released_at?: string | null;
+  transaction_status?: TransactionStatus;
+  contract?: Pick<Contract, "status"> | null;
 }
 
 export interface PaymentPreparePayload {
@@ -241,9 +252,12 @@ export interface PaymentDetail {
     | "customer_id"
     | "booking_status"
     | "payment_status"
+    | "settlement_status"
     | "escrow_status"
     | "escrow_held_at"
     | "escrow_released_at"
+    | "transaction_status"
+    | "contract"
   >;
 }
 
@@ -324,4 +338,5 @@ export type {
   SavedFreelancer,
   ReviewStatus,
   SettlementStatus,
+  TransactionStatus,
 };
