@@ -112,12 +112,15 @@ export default function HomePage() {
               </h1>
 
               <p className="mt-5 max-w-2xl text-[16px] font-semibold leading-[1.72] text-slate dark:text-white/80 sm:mt-6 sm:text-[18px] lg:text-[21px] lg:leading-[1.65]">
-                <span>기업행사·웨딩·라이브커머스·컨퍼런스에 맞는</span>
-                <br className="block lg:hidden" />
+                <span className="block lg:inline">
+                  기업행사·웨딩·라이브커머스·컨퍼런스에 맞는
+                </span>
                 <span className="hidden lg:inline"> </span>
-                <span>전문 MC·아나운서·쇼호스트를</span>
+                <span className="block lg:inline">
+                  전문 MC·아나운서·쇼호스트를
+                </span>
                 <br className="hidden lg:block" />
-                <span className="lg:mt-1 lg:inline-block">
+                <span className="block lg:mt-1 lg:inline-block">
                   30초 시그니처 보이스와 항목별 후기 기반으로 추천합니다
                 </span>
               </p>
