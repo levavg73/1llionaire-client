@@ -16,6 +16,7 @@ import { Trash2 } from "lucide-react";
 
 export default function NotificationsPage() {
   const [page, setPage] = useState(1);
+  const [deletingNotificationId, setDeletingNotificationId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -45,7 +46,13 @@ export default function NotificationsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => notificationApi.deleteNotification(id),
+    onMutate: (id: string) => {
+      setDeletingNotificationId(id);
+    },
     onSuccess: invalidate,
+    onSettled: (_data, _error, id) => {
+      setDeletingNotificationId((currentId) => (currentId === id ? null : currentId));
+    },
   });
 
   const openNotification = (item: NotificationItem) => {
@@ -108,7 +115,7 @@ export default function NotificationsPage() {
                         event.stopPropagation();
                         deleteMutation.mutate(item.id);
                       }}
-                      disabled={deleteMutation.isPending}
+                      disabled={deletingNotificationId === item.id}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

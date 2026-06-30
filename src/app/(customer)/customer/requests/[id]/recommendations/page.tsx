@@ -252,10 +252,11 @@ export default function RecommendationsPage({
                     className="w-full bg-navy text-white hover:bg-navy-light disabled:opacity-60"
                     size="sm"
                     disabled={
-                      bookingMutation.isPending ||
+                      pendingFreelancerId === f.id ||
                       !isRecommendationBookable(rec.status, hasActiveSelection)
                     }
                     onClick={() => {
+                      if (bookingMutation.isPending) return;
                       if (
                         !isRecommendationBookable(
                           rec.status,
