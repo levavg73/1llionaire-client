@@ -68,7 +68,10 @@ export default function HomePage() {
   return (
     <div className="bg-clear text-text">
       <section className="relative overflow-hidden bg-clear" aria-label="히어로 섹션">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,_rgba(97,92,255,0.16),_transparent_34%),radial-gradient(circle_at_90%_10%,_rgba(49,54,142,0.12),_transparent_32%)]" aria-hidden="true" />
+        <div
+          className="absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,_rgba(97,92,255,0.16),_transparent_34%),radial-gradient(circle_at_90%_10%,_rgba(49,54,142,0.12),_transparent_32%)]"
+          aria-hidden="true"
+        />
 
         <div className="relative min-h-[620px] overflow-hidden sm:min-h-[620px] lg:min-h-[680px]">
           <Image
@@ -114,7 +117,9 @@ export default function HomePage() {
                 <span className="hidden lg:inline"> </span>
                 <span>전문 MC·아나운서·쇼호스트를</span>
                 <br className="hidden lg:block" />
-                <span className="lg:mt-1 lg:inline-block">후기와 검증 기준으로 추천합니다.</span>
+                <span className="lg:mt-1 lg:inline-block">
+                  30초 시그니처 보이스와 항목별 후기 기반으로 추천합니다
+                </span>
               </p>
 
               <ul className="mt-5 flex flex-wrap gap-2 sm:mt-7 sm:gap-3" aria-label="VOIT 신뢰 요소">
@@ -149,7 +154,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="container mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20" aria-labelledby="features-heading">
+      <section
+        className="container mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20"
+        aria-labelledby="features-heading"
+      >
         <div className="mx-auto mb-8 max-w-2xl text-center sm:mb-12">
           <h2 id="features-heading" className="text-[30px] font-extrabold tracking-[-0.04em] text-text sm:text-[40px] lg:text-[46px]">
             왜 VOIT인가요?
@@ -207,7 +215,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="container mx-auto max-w-7xl px-4 py-12 text-center sm:px-6 sm:py-16 lg:px-8 lg:py-20" aria-labelledby="cta-heading">
+      <section
+        className="container mx-auto max-w-7xl px-4 py-12 text-center sm:px-6 sm:py-16 lg:px-8 lg:py-20"
+        aria-labelledby="cta-heading"
+      >
         <h2 id="cta-heading" className="text-[30px] font-extrabold tracking-[-0.04em] text-text sm:text-[40px] lg:text-[46px]">
           행사에 맞는 진행자를 찾고 계신가요?
         </h2>
@@ -228,12 +239,6 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
-
-      <footer className="border-t border-line bg-card py-6 sm:py-8" role="contentinfo">
-        <div className="container mx-auto flex max-w-7xl items-center justify-center px-4 text-[13px] text-slate sm:text-[14px]">
-          <p>© 2026 VOIT. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 }
