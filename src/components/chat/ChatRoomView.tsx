@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { chatApi, bookingApi } from "@/lib/api";
+import { chatApi, bookingApi, contractApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -12,8 +13,36 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingState, ErrorState } from "@/components/common/States";
 import { TransactionStatusBadge, PaymentStatusBadge } from "@/components/common/StatusBadge";
-import { BookingOffer, ChatMessage, ChatRoomDetail } from "@/types";
+import { BookingOffer, ChatMessage, ChatRoomDetail, ContractStatus } from "@/types";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
+
+
+function getContractActionState(status: ContractStatus | string | null | undefined, userType?: string) {
+  const isFullySigned = status === "fully_signed";
+  const isCustomerSigned = status === "pending_freelancer" || isFullySigned;
+  const isFreelancerSigned = status === "pending_customer" || isFullySigned;
+  const currentUserSigned =
+    userType === "customer"
+      ? isCustomerSigned
+      : userType === "freelancer"
+        ? isFreelancerSigned
+        : false;
+
+  if (isFullySigned) {
+    return { label: "계약서 보기", signed: true, fullySigned: true };
+  }
+
+  if (currentUserSigned) {
+    return { label: "상대방 계약 대기", signed: true, fullySigned: false };
+  }
+
+  return { label: "계약하기", signed: false, fullySigned: false };
+}
+
+function getContractErrorMessage(error: unknown) {
+  const maybeError = error as { response?: { data?: { error?: { message?: string } } }; message?: string };
+  return maybeError.response?.data?.error?.message || maybeError.message || "계약 처리에 실패했습니다.";
+}
 
 function OfferActions({
   bookingId,
@@ -98,6 +127,7 @@ function MessageBubble({ message, bookingId, roomId, currentUserId }: { message:
 
 export function ChatRoomView({ roomId, basePath }: { roomId: string; basePath: "/customer/chats" | "/freelancer/chats" }) {
   const { user } = useAuth();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   const [offerAmount, setOfferAmount] = useState("");
@@ -144,11 +174,31 @@ export function ChatRoomView({ roomId, basePath }: { roomId: string; basePath: "
     },
   });
 
+  const contractMutation = useMutation({
+    mutationFn: (bookingId: string) => contractApi.accept(bookingId),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.chatRoomMessages(roomId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.chatRooms });
+      queryClient.invalidateQueries({ queryKey: queryKeys.customerBookings });
+      queryClient.invalidateQueries({ queryKey: queryKeys.freelancerBookings });
+      queryClient.invalidateQueries({ queryKey: queryKeys.contract(response.data.data.booking_id) });
+
+      if (response.data.data.status === "fully_signed") {
+        router.push(`/contracts/${response.data.data.booking_id}`);
+      }
+    },
+  });
+
   const canPay =
     user?.user_type === "customer" &&
     booking &&
     ["payment_pending", "confirmed"].includes(booking.booking_status) &&
     booking.payment_status !== "fully_paid";
+
+  const canUseContract =
+    booking &&
+    !["pending", "rejected", "canceled", "disputed"].includes(booking.booking_status);
+  const contractAction = getContractActionState(booking?.contract?.status, user?.user_type);
 
   if (isLoading) return <LoadingState />;
   if (isError || !detail || !room || !booking) return <ErrorState onRetry={() => refetch()} />;
@@ -169,6 +219,29 @@ export function ChatRoomView({ roomId, basePath }: { roomId: string; basePath: "
           <div className="flex flex-wrap items-center gap-2">
             <TransactionStatusBadge booking={booking} />
             <PaymentStatusBadge status={booking.payment_status} />
+            {canUseContract && contractAction.fullySigned && (
+              <Link href={`/contracts/${booking.id}`}>
+                <Button size="sm" variant="outline">
+                  {contractAction.label}
+                </Button>
+              </Link>
+            )}
+            {canUseContract && !contractAction.fullySigned && (
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  size="sm"
+                  disabled={contractAction.signed || contractMutation.isPending}
+                  onClick={() => contractMutation.mutate(booking.id)}
+                  className={contractAction.signed ? undefined : "bg-navy text-white hover:bg-navy-light"}
+                  variant={contractAction.signed ? "outline" : "default"}
+                >
+                  {contractMutation.isPending ? "계약 처리 중..." : contractAction.label}
+                </Button>
+                <Link href={`/contracts/${booking.id}`}>
+                  <Button size="sm" variant="ghost">계약서 보기</Button>
+                </Link>
+              </div>
+            )}
             {canPay && (
               <Link href={`/customer/bookings/${booking.id}/payment`}>
                 <Button size="sm" className="bg-navy text-white hover:bg-navy-light">결제하기</Button>
@@ -177,6 +250,12 @@ export function ChatRoomView({ roomId, basePath }: { roomId: string; basePath: "
           </div>
         </div>
       </div>
+
+      {contractMutation.isError && (
+        <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          {getContractErrorMessage(contractMutation.error)}
+        </div>
+      )}
 
       <Card>
         <CardContent className="h-[520px] space-y-3 overflow-y-auto p-4">
