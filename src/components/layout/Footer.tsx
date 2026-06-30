@@ -8,34 +8,28 @@ const POLICY_LINKS = [
 export function Footer() {
   return (
     <footer className="border-t border-line bg-background text-text" aria-label="사이트 하단 정보">
-      <div className="container mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-6">
-          <div className="space-y-3 text-[15px] leading-7 text-slate dark:text-white/70">
-            <p>
-              운영시간 10:30~18:00{" "}
-              <span className="text-slate/70 dark:text-white/50">
-                (점심시간 13:00~14:00)
-              </span>
-              <span className="mx-2 text-slate/40 dark:text-white/30">·</span>
-              주말, 공휴일 휴무
-            </p>
-          </div>
+      <div className="container mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="grid items-center gap-4 text-sm text-slate dark:text-white/60 md:grid-cols-3">
+          <nav className="flex flex-wrap items-center gap-x-8 gap-y-2 md:justify-start" aria-label="정책 링크">
+            {POLICY_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="font-extrabold transition hover:text-lavender"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
 
-          <div className="flex flex-col gap-4 border-t border-line pt-5 text-sm text-slate dark:text-white/60 sm:flex-row sm:items-center sm:justify-between">
-            <nav className="flex flex-wrap items-center gap-x-8 gap-y-3" aria-label="정책 링크">
-              {POLICY_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="font-extrabold transition hover:text-lavender"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
+          <p className="text-center text-sm">© {new Date().getFullYear()} VOIT. All rights reserved.</p>
 
-            <p className="text-xs">© {new Date().getFullYear()} VOIT. All rights reserved.</p>
-          </div>
+          <p className="text-sm md:text-right">
+            운영시간 10:30~18:00{" "}
+            <span className="text-slate/70 dark:text-white/50">(점심시간 13:00~14:00)</span>
+            <span className="mx-2 text-slate/40 dark:text-white/30">·</span>
+            주말, 공휴일 휴무
+          </p>
         </div>
       </div>
     </footer>
