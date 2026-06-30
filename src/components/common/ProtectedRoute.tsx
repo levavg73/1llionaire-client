@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import type { UserType } from "@/types";
 import { LoadingState } from "@/components/common/States";
+import { getDefaultPostAuthPath } from "@/lib/auth-redirects";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -23,7 +24,11 @@ function getCurrentPath() {
   return `${window.location.pathname}${window.location.search}`;
 }
 
-export function ProtectedRoute({ children, allowedRoles, renderWhileLoading = false }: ProtectedRouteProps) {
+export function ProtectedRoute({
+  children,
+  allowedRoles,
+  renderWhileLoading = false,
+}: ProtectedRouteProps) {
   const { user, isLoading, isServerWaking } = useAuth();
   const router = useRouter();
 
@@ -37,7 +42,7 @@ export function ProtectedRoute({ children, allowedRoles, renderWhileLoading = fa
     }
 
     if (allowedRoles && !allowedRoles.includes(user.user_type)) {
-      router.replace("/403");
+      router.replace(getDefaultPostAuthPath(user.user_type));
     }
   }, [user, isLoading, allowedRoles, router]);
 
@@ -56,8 +61,12 @@ export function ProtectedRoute({ children, allowedRoles, renderWhileLoading = fa
   if (isLoading && renderWhileLoading) {
     return <>{children}</>;
   }
+
   if (!user) return null;
-  if (allowedRoles && !allowedRoles.includes(user.user_type)) return null;
+
+  if (allowedRoles && !allowedRoles.includes(user.user_type)) {
+    return null;
+  }
 
   return <>{children}</>;
 }
